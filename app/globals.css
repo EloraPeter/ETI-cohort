@@ -60,8 +60,8 @@
   .section-grid-bg {
     background-image: theme("backgroundImage.grid-lines");
     background-size: 42px 42px;
-    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    /* -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%); */
+    /* mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%); */
   }
 
   /* Brand status badges — success/warning/error accent colors */

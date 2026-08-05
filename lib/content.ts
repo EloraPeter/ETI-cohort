@@ -6,8 +6,8 @@
 
 export const bankDetails = {
   accountName: "Elora Tech Ltd",
-  bankName: "GTBank",
-  accountNumber: "0123456789",
+  bankName: "ZENITH BANK PLC",
+  accountNumber: "1312354845",
 } as const;
 
 export const paymentMethods = [

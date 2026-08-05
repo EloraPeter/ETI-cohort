@@ -55,7 +55,7 @@ export default async function BankTransferPage({ params }: { params: Promise<{ p
         </div>
 
         <p className="mt-4 text-center text-sm text-mist">
-          After payment, upload your payment proof below, or wait for our team to confirm it manually.
+          After payment, upload your payment proof below, and wait for our team to confirm it manually.
         </p>
 
         <div className="glass-panel mt-6 p-6 sm:p-8">
