@@ -28,30 +28,51 @@
   }
 
   .glass-panel-light {
-    @apply relative rounded-xl2 border border-ink-900/5 bg-white/70 backdrop-blur-xl shadow-glass;
+    @apply relative rounded-xl2 border border-paper-200 bg-white shadow-md;
   }
 
+  /* Primary Button — ETI Royal Blue, flat, radius 12px, lifts on hover */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-signal-violet px-7 py-3.5
-      text-sm font-semibold text-white shadow-glow-blue transition-transform duration-200
-      hover:scale-[1.03] active:scale-[0.98] focus-visible:scale-[1.03];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-signal-500 px-7 py-3.5
+      text-sm font-semibold text-white shadow-sm transition-all duration-200
+      hover:-translate-y-0.5 hover:bg-signal-600 hover:shadow-md active:translate-y-0
+      focus-visible:-translate-y-0.5;
   }
 
+  /* Gold Button — premium actions (certificates, cohort join, achievements) */
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gold-500 px-7 py-3.5
+      text-sm font-semibold text-ink-900 shadow-sm transition-all duration-200
+      hover:-translate-y-0.5 hover:bg-gold-400 hover:shadow-md active:translate-y-0;
+  }
+
+  /* Secondary Button — outline style per brand system */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-white/15
-      bg-white/[0.03] px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-md
-      transition-colors duration-200 hover:bg-white/[0.08];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border-2 border-signal-500
+      bg-transparent px-7 py-3.5 text-sm font-semibold text-signal-400 transition-colors duration-200
+      hover:bg-signal-500/10;
   }
 
   .eyebrow {
-    @apply font-mono text-xs uppercase tracking-[0.2em] text-signal-400;
+    @apply font-mono text-xs uppercase tracking-[0.2em] text-sky-400;
   }
 
   .section-grid-bg {
     background-image: theme("backgroundImage.grid-lines");
     background-size: 42px 42px;
-    /* -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%); */
-    /* mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%); */
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  }
+
+  /* Brand status badges — success/warning/error accent colors */
+  .badge-success {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success;
+  }
+  .badge-warning {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-1 text-xs font-medium text-warning;
+  }
+  .badge-error {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-error/10 px-3 py-1 text-xs font-medium text-error;
   }
 }
 

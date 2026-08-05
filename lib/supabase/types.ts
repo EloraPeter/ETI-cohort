@@ -1,11 +1,34 @@
 /**
- * Mirrors supabase/schema.sql. If you have the Supabase CLI configured,
- * prefer regenerating this with:
+ * Mirrors supabase/migrations/*.sql. If you have the Supabase CLI
+ * configured, prefer regenerating this with:
  *   supabase gen types typescript --project-id <ref> > lib/supabase/types.ts
  * Kept hand-written here so the project runs without CLI access.
  */
 
-export type RegistrationStatus = "pending" | "contacted" | "payment_pending" | "enrolled" | "declined";
+export type RegistrationStatus =
+  | "pending" | "contacted" | "payment_pending" | "enrolled" | "declined" // legacy — may still exist on old rows
+  | "pending_payment"
+  | "payment_processing"
+  | "paid"
+  | "failed"
+  | "cancelled";
+
+export type PaymentMethod = "Paystack" | "Bank Transfer";
+
+export type PaymentStatus = "pending_payment" | "payment_processing" | "paid" | "failed" | "cancelled";
+
+export type Gender = "Female" | "Male" | "Prefer not to say";
+export type EducationLevel = "Secondary school" | "Undergraduate" | "Bachelor's degree" | "Master's degree" | "Other";
+export type CodingExperience = "None" | "Beginner (self-taught basics)" | "Some coursework" | "Intermediate+";
+export type HearAboutEti =
+  | "Instagram"
+  | "TikTok"
+  | "X (Twitter)"
+  | "LinkedIn"
+  | "Friend or referral"
+  | "WhatsApp"
+  | "Google search"
+  | "Other";
 
 export interface Cohort {
   [key: string]: unknown;
@@ -27,24 +50,15 @@ export interface Registration {
   email: string;
   phone: string;
   age: number;
-  gender: "Female" | "Male" | "Prefer not to say";
+  gender: Gender;
   state: string;
   city: string;
   occupation: string;
-  education_level: "Secondary school" | "Undergraduate" | "Bachelor's degree" | "Master's degree" | "Other";
+  education_level: EducationLevel;
   owns_laptop: boolean;
-  coding_experience: "None" | "Beginner (self-taught basics)" | "Some coursework" | "Intermediate+";
-  heard_about_eti:
-    | "Instagram"
-    | "TikTok"
-    | "X (Twitter)"
-    | "LinkedIn"
-    | "Friend or referral"
-    | "WhatsApp"
-    | "Google search"
-    | "Other";
+  coding_experience: CodingExperience;
+  heard_about_eti: HearAboutEti;
   motivation: string;
-  preferred_payment_method: "Bank transfer" | "Card payment" | "Installments (if available)";
   agreed_to_terms: boolean;
   status: RegistrationStatus;
   admin_notes: string | null;
@@ -59,27 +73,76 @@ export interface RegistrationInsert {
   email: string;
   phone: string;
   age: number;
-  gender: "Female" | "Male" | "Prefer not to say";
+  gender: Gender;
   state: string;
   city: string;
   occupation: string;
-  education_level: "Secondary school" | "Undergraduate" | "Bachelor's degree" | "Master's degree" | "Other";
+  education_level: EducationLevel;
   owns_laptop: boolean;
-  coding_experience: "None" | "Beginner (self-taught basics)" | "Some coursework" | "Intermediate+";
-  heard_about_eti:
-    | "Instagram"
-    | "TikTok"
-    | "X (Twitter)"
-    | "LinkedIn"
-    | "Friend or referral"
-    | "WhatsApp"
-    | "Google search"
-    | "Other";
+  coding_experience: CodingExperience;
+  heard_about_eti: HearAboutEti;
   motivation: string;
-  preferred_payment_method: "Bank transfer" | "Card payment" | "Installments (if available)";
   agreed_to_terms: boolean;
   status?: RegistrationStatus;
   admin_notes?: string | null;
+}
+
+export interface Payment {
+  [key: string]: unknown;
+  id: string;
+  registration_id: string;
+  cohort_id: string;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  amount_expected: number;
+  amount_paid: number | null;
+  currency: string;
+  paystack_reference: string | null;
+  paystack_transaction_id: string | null;
+  paystack_authorization_url: string | null;
+  bank_reference: string | null;
+  proof_path: string | null;
+  proof_uploaded_at: string | null;
+  payment_date: string | null;
+  admin_notes: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentInsert {
+  [key: string]: unknown;
+  registration_id: string;
+  cohort_id: string;
+  method: PaymentMethod;
+  amount_expected: number;
+  status?: PaymentStatus;
+  currency?: string;
+}
+
+export interface Student {
+  [key: string]: unknown;
+  id: string;
+  student_code: string;
+  registration_id: string;
+  cohort_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  status: "active" | "inactive" | "withdrawn";
+  enrolled_at: string;
+  created_at: string;
+}
+
+export interface StudentInsert {
+  [key: string]: unknown;
+  registration_id: string;
+  cohort_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  status?: "active" | "inactive" | "withdrawn";
 }
 
 export interface Database {
@@ -95,6 +158,18 @@ export interface Database {
         Row: Registration;
         Insert: RegistrationInsert;
         Update: Partial<Registration>;
+        Relationships: [];
+      };
+      payments: {
+        Row: Payment;
+        Insert: PaymentInsert;
+        Update: Partial<Payment>;
+        Relationships: [];
+      };
+      students: {
+        Row: Student;
+        Insert: StudentInsert;
+        Update: Partial<Student>;
         Relationships: [];
       };
     };

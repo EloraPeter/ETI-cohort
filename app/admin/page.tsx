@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
     <main className="section-grid-bg flex min-h-screen items-center justify-center py-20">
       <Container className="max-w-sm">
         <div className="glass-panel p-8">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-signal-violet">
+          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-brand-gradient">
             <Lock className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
           <h1 className="mt-5 text-center text-xl font-semibold">Admin sign in</h1>

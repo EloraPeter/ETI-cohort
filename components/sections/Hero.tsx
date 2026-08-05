@@ -21,7 +21,7 @@ export function Hero() {
 
           <h1 className="mt-5 text-4xl font-semibold leading-[1.08] sm:text-5xl lg:text-6xl">
             Become a{" "}
-            <span className="bg-signal-violet bg-clip-text text-transparent">Web Developer</span>{" "}
+            <span className="bg-brand-gradient bg-clip-text text-transparent">Web Developer</span>{" "}
             in Just 7 Weeks
           </h1>
 
@@ -35,9 +35,9 @@ export function Hero() {
               Register Now
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
-            <Link href="#curriculum" className="btn-secondary">
+            <a href="#curriculum" className="btn-secondary">
               View Curriculum
-            </Link>
+            </a>
           </div>
 
           <ul className="mt-10 flex flex-wrap gap-3" aria-label="Cohort details">

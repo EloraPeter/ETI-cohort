@@ -4,6 +4,25 @@
  * FAQ wording) never require touching JSX.
  */
 
+export const bankDetails = {
+  accountName: "Elora Tech Ltd",
+  bankName: "GTBank",
+  accountNumber: "0123456789",
+} as const;
+
+export const paymentMethods = [
+  {
+    value: "Paystack",
+    title: "Pay with Paystack",
+    description: "Card, bank app, or USSD. Instant, automatic confirmation — no waiting on manual review.",
+  },
+  {
+    value: "Bank Transfer",
+    title: "Bank Transfer",
+    description: "Transfer directly to our account, then upload your proof of payment for review.",
+  },
+] as const;
+
 export const cohort = {
   title: "Web Development Cohort",
   cadence: "September 2026",

@@ -12,8 +12,8 @@ export async function GET(request: Request) {
 
   const [{ count: total }, { count: enrolled }, { count: pending }, { count: withLaptop }] = await Promise.all([
     supabase.from("registrations").select("*", { count: "exact", head: true }),
-    supabase.from("registrations").select("*", { count: "exact", head: true }).eq("status", "enrolled"),
-    supabase.from("registrations").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("students").select("*", { count: "exact", head: true }),
+    supabase.from("registrations").select("*", { count: "exact", head: true }).eq("status", "pending_payment"),
     supabase.from("registrations").select("*", { count: "exact", head: true }).eq("owns_laptop", true),
   ]);
 

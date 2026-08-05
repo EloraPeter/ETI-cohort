@@ -19,7 +19,7 @@ const SNIPPET = [
 const COLORS: Record<string, string> = {
   comment: "text-mist/70",
   tag: "text-signal-400",
-  attr: "text-violet-400",
+  attr: "text-sky-400",
   plain: "text-white",
 };
 
@@ -74,7 +74,7 @@ export function CodeTerminal() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className="flex h-[180px] flex-col items-center justify-center gap-2 rounded-lg bg-signal-violet text-center"
+            className="flex h-[180px] flex-col items-center justify-center gap-2 rounded-lg bg-brand-gradient text-center"
           >
             <p className="font-body text-sm font-medium text-white/80">Pro Plan</p>
             <p className="font-display text-2xl font-semibold text-white">₦250,000</p>

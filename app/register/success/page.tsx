@@ -13,7 +13,7 @@ export default function RegistrationSuccessPage() {
     <main className="section-grid-bg flex min-h-screen items-center justify-center py-20">
       <Container className="max-w-lg text-center">
         <div className="glass-panel p-10 sm:p-14">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-signal-violet">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-gradient">
             <CheckCircle2 className="h-7 w-7 text-white" aria-hidden="true" />
           </div>
 

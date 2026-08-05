@@ -16,7 +16,7 @@ export function Pricing() {
 
         <div className="mx-auto mt-14 max-w-md">
           <div className="glass-panel relative overflow-hidden p-8">
-            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-signal-violet opacity-30 blur-3xl" aria-hidden="true" />
+            <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-brand-gradient opacity-30 blur-3xl" aria-hidden="true" />
 
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-signal-400">
               {cohort.title} · {cohort.cadence}

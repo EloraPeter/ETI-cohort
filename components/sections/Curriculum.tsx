@@ -22,7 +22,7 @@ export function Curriculum() {
                 <h3 className="text-lg font-semibold text-white">{week.title}</h3>
                 <ul className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-mist">
                   {week.topics.map((topic) => (
-                    <li key={topic} className="before:mr-2 before:text-violet-400 before:content-['—']">
+                    <li key={topic} className="before:mr-2 before:text-sky-400 before:content-['—']">
                       {topic}
                     </li>
                   ))}

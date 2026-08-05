@@ -7,7 +7,7 @@ export function FinalCTA() {
     <section className="py-24 sm:py-32">
       <Container>
         <div className="glass-panel relative overflow-hidden px-8 py-16 text-center sm:px-16">
-          <div className="absolute inset-0 -z-10 bg-signal-violet opacity-20" aria-hidden="true" />
+          <div className="absolute inset-0 -z-10 bg-brand-gradient opacity-20" aria-hidden="true" />
           <h2 className="text-3xl font-semibold text-white sm:text-4xl">
             Ready to start your tech journey?
           </h2>

@@ -28,7 +28,7 @@ export function WhyChooseETI() {
             const Icon = icons[i % icons.length] ?? Sparkles;
             return (
               <div key={feature.title} className="glass-panel p-6 transition-colors hover:bg-white/[0.06]">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-signal-violet">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-gradient">
                   <Icon className="h-5 w-5 text-white" aria-hidden="true" />
                 </div>
                 <h3 className="mt-5 text-lg font-semibold text-white">{feature.title}</h3>

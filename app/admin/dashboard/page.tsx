@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Search, Download, LogOut, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { StatCard } from "@/components/admin/StatCard";
@@ -16,11 +17,11 @@ const PAGE_SIZE = 20;
 
 const STATUS_OPTIONS: { value: RegistrationStatus | ""; label: string }[] = [
   { value: "", label: "All statuses" },
-  { value: "pending", label: "Pending" },
-  { value: "contacted", label: "Contacted" },
-  { value: "payment_pending", label: "Payment pending" },
-  { value: "enrolled", label: "Enrolled" },
-  { value: "declined", label: "Declined" },
+  { value: "pending_payment", label: "Pending payment" },
+  { value: "payment_processing", label: "Processing" },
+  { value: "paid", label: "Paid" },
+  { value: "failed", label: "Failed" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 const filterInputClass =
@@ -139,19 +140,24 @@ export default function AdminDashboardPage() {
             <h1 className="font-display text-2xl font-semibold">Registrations</h1>
             <p className="text-sm text-ink-700">Web Development Cohort — September 2026</p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"
-          >
-            <LogOut className="h-4 w-4" aria-hidden="true" />
-            Sign out
-          </button>
+          <div className="flex items-center gap-3">
+            <Link href="/admin/payments" className="text-sm font-medium text-signal-500 hover:underline">
+              Payments
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              Sign out
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCard label="Total registrations" value={stats.total} />
           <StatCard label="Enrolled" value={stats.enrolled} />
-          <StatCard label="Pending follow-up" value={stats.pending} />
+          <StatCard label="Pending payment" value={stats.pending} />
           <StatCard label="Own a laptop" value={stats.withLaptop} />
         </div>
 

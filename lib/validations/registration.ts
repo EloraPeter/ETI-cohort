@@ -19,7 +19,7 @@ export const hearAboutOptions = [
   "Google search",
   "Other",
 ] as const;
-export const paymentMethodOptions = ["Bank transfer", "Card payment", "Installments (if available)"] as const;
+export const paymentMethodOptions = ["Paystack", "Bank Transfer"] as const;
 
 export const registrationSchema = z.object({
   fullName: z
