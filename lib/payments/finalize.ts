@@ -19,7 +19,7 @@ interface FinalizeEnrollmentResult {
   alreadyProcessed: boolean;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://eloratechinstitute.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://cohort.eloratechinstitute.com";
 
 /**
  * Idempotent: if the payment is already `paid`, returns the existing
