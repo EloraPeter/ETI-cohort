@@ -19,7 +19,8 @@ interface ConfirmationEmailParams {
  */
 export async function sendEnrollmentConfirmationEmail(params: ConfirmationEmailParams): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL ?? "Elora Tech Institute <admissions@eloratechinstitute.com>";
+  const from = process.env.RESEND_FROM_EMAIL ?? "Elora Tech Institute <onboarding@eloratechinstitute.com>";
+  const replyTo = process.env.RESEND_REPLY_TO_EMAIL ?? "eloratechinstitute@gmail.com";
 
   const subject = `You're enrolled — welcome to ${params.cohortName}`;
   const startsOnFormatted = new Date(params.startsOn).toLocaleDateString("en-NG", {
@@ -71,7 +72,7 @@ export async function sendEnrollmentConfirmationEmail(params: ConfirmationEmailP
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to: params.to, subject, html }),
+      body: JSON.stringify({ from, to: params.to, reply_to: replyTo, subject, html }),
     });
     if (!res.ok) {
       console.error("Resend email failed:", await res.text());
