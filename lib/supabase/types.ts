@@ -133,6 +133,11 @@ export interface Student {
   status: "active" | "inactive" | "withdrawn";
   enrolled_at: string;
   created_at: string;
+  auth_user_id: string | null;
+  preferred_name: string | null;
+  timezone: string | null;
+  laptop_ready: boolean;
+  profile_completed_at: string | null;
 }
 
 export interface StudentInsert {
@@ -143,6 +148,16 @@ export interface StudentInsert {
   email: string;
   phone: string;
   status?: "active" | "inactive" | "withdrawn";
+}
+
+export interface ChecklistItem {
+  [key: string]: unknown;
+  id: string;
+  student_id: string;
+  item_key: string;
+  label: string;
+  completed_at: string | null;
+  created_at: string;
 }
 
 export interface Database {
@@ -170,6 +185,12 @@ export interface Database {
         Row: Student;
         Insert: StudentInsert;
         Update: Partial<Student>;
+        Relationships: [];
+      };
+      student_checklist_items: {
+        Row: ChecklistItem;
+        Insert: Partial<ChecklistItem>;
+        Update: Partial<ChecklistItem>;
         Relationships: [];
       };
     };

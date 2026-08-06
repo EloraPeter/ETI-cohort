@@ -13,7 +13,17 @@ export async function POST(request: Request) {
   }
 
   const expectedSignature = crypto.createHmac("sha512", secretKey).update(rawBody).digest("hex");
-  if (expectedSignature !== signature) {
+
+  // timingSafeEqual requires equal-length buffers, and throws otherwise —
+  // guard the length first so a mismatched signature is still a clean
+  // rejection rather than an unhandled exception.
+  const expectedBuffer = Buffer.from(expectedSignature, "hex");
+  const providedBuffer = Buffer.from(signature, "hex");
+  const signaturesMatch =
+    expectedBuffer.length === providedBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, providedBuffer);
+
+  if (!signaturesMatch) {
     return NextResponse.json({ error: "Invalid signature." }, { status: 401 });
   }
 

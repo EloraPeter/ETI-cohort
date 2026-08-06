@@ -5,6 +5,7 @@ interface ConfirmationEmailParams {
   fullName: string;
   studentCode: string;
   onboardingUrl: string;
+  accountSetupUrl: string | null;
   cohortName: string;
   startsOn: string;
   durationWeeks: number;
@@ -44,6 +45,16 @@ export async function sendEnrollmentConfirmationEmail(params: ConfirmationEmailP
           View your onboarding details
         </a>
       </p>
+      ${
+        params.accountSetupUrl
+          ? `<p style="margin: 0 0 24px;">
+        <a href="${params.accountSetupUrl}" style="background:#0F172A;color:white;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:600;">
+          Set up your student account
+        </a>
+      </p>
+      <p style="color:#64748B; font-size:13px;">This link lets you set a password for your student dashboard. It expires after a while — if it stops working, contact us and we'll send a new one.</p>`
+          : ""
+      }
       <p style="color:#94A3B8; font-size:13px;">— Elora Tech Institute</p>
     </div>
   `;

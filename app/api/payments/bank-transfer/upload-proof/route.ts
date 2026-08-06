@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { detectFileKind } from "@/lib/validations/fileSignature";
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
 
 export async function POST(request: Request) {
   const formData = await request.formData().catch(() => null);
@@ -19,11 +19,15 @@ export async function POST(request: Request) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "A proof file is required." }, { status: 400 });
   }
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: "Upload a PNG, JPG, WEBP, or PDF file." }, { status: 400 });
-  }
   if (file.size > MAX_SIZE_BYTES) {
     return NextResponse.json({ error: "File is too large — max 5MB." }, { status: 400 });
+  }
+
+  // Check the file's actual bytes, not the client-supplied MIME type —
+  // the browser's declared file.type is trivially spoofable.
+  const detectedKind = await detectFileKind(file);
+  if (!detectedKind) {
+    return NextResponse.json({ error: "Upload a PNG, JPG, WEBP, or PDF file." }, { status: 400 });
   }
 
   const supabase = createAdminClient();
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
 
   const { error: uploadError } = await supabase.storage
     .from("payment-proofs")
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, file, { contentType: detectedKind, upsert: false });
 
   if (uploadError) {
     console.error("Proof upload failed:", uploadError);
