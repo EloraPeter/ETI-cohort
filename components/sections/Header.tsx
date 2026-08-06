@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import Image from "next/image";
 
 const navLinks = [
   { href: "#curriculum", label: "Curriculum" },
@@ -12,9 +13,27 @@ export function Header() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-ink-900/70 backdrop-blur-xl">
       <Container className="flex h-16 items-center justify-between">
-        <Link href="/" className="font-display text-base font-semibold text-white">
-          Elora<span className="text-signal-400">Tech</span>
-        </Link>
+        <Link href="/" className="flex items-center gap-3">
+  <div className="flex items-center gap-2">
+    <Image
+      src="/eti-logo1.jpg"
+      alt="ETI Logo"
+      width={45}
+      height={45}
+      className="h-[45px] w-[45px] rounded-[3px] bg-[#1D4ED8] object-cover flex-shrink-0"
+    />
+
+    <div className="font-display text-left font-semibold text-white leading-[1.2]">
+      <div className="text-base">
+        Elora<span className="text-[#F59E0B]">Tech</span>
+      </div>
+
+      <p className="m-0 text-[10px] font-normal uppercase tracking-[0.25em] text-white/50">
+        Institute
+      </p>
+    </div>
+  </div>
+</Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (

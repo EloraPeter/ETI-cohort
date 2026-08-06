@@ -57,6 +57,9 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: siteUrl },
   robots: { index: true, follow: true },
+  icons: {
+    icon: "/eti-logo1.svg",
+  },
 };
 
 const courseJsonLd = {

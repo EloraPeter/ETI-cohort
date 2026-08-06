@@ -129,7 +129,7 @@ export function RegistrationForm() {
               Select
             </option>
             {genderOptions.map((o) => (
-              <option key={o} value={o}>
+              <option key={o} value={o} className="bg-[#0F172A] text-white"> 
                 {o}
               </option>
             ))}

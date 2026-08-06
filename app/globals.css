@@ -84,3 +84,20 @@
     scroll-behavior: auto !important;
   }
 }
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23F59E0B' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.2em 1.2em;
+  padding-right: 2.5rem;
+}
+
+select option {
+  background-color: #0F172A;
+  color: white;
+}
+
+select option:disabled {
+  color: rgba(255, 255, 255, 0.5);
+}
