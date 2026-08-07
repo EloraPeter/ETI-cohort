@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { KeyRound, Loader2, CheckCircle2 } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { KeyRound, Loader2, CheckCircle2, MailCheck } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { createClient } from "@/lib/supabase/client";
 
-// Session comes from the recovery link in the URL — never statically prerendered.
+// Reads token_hash/type from the URL — never statically prerendered.
 export const dynamic = "force-dynamic";
 
 const TIMEZONES = [
@@ -23,13 +23,28 @@ const TIMEZONES = [
   "Other",
 ];
 
-type Step = "checking" | "expired" | "password" | "profile" | "done";
+type Step = "confirm" | "verifying" | "expired" | "password" | "profile" | "done";
 
 export default function AccountSetupPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="section-grid-bg flex min-h-screen items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin text-mist" aria-hidden="true" />
+        </main>
+      }
+    >
+      <AccountSetupForm />
+    </Suspense>
+  );
+}
+
+function AccountSetupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
-  const [step, setStep] = useState<Step>("checking");
+  const [step, setStep] = useState<Step>("confirm");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -40,13 +55,30 @@ export default function AccountSetupPage() {
   const [timezone, setTimezone] = useState("Africa/Lagos");
   const [laptopReady, setLaptopReady] = useState(false);
 
-  // The recovery link redirects here with the session encoded in the URL —
-  // the Supabase browser client auto-detects and applies it on load.
+  const tokenHash = searchParams.get("token_hash");
+
+  // No auto-verification on load — email link scanners silently visit
+  // every link in an inbox to check it's safe, and a GET-based auto-verify
+  // would burn the one-time token before the student ever sees this page.
+  // Verification only happens once the student explicitly clicks below.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setStep(data.session ? "password" : "expired");
+    if (!tokenHash) setStep("expired");
+  }, [tokenHash]);
+
+  async function handleConfirm() {
+    if (!tokenHash) return;
+    setStep("verifying");
+    setError(null);
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: "recovery",
     });
-  }, [supabase]);
+    if (verifyError) {
+      setStep("expired");
+      return;
+    }
+    setStep("password");
+  }
 
   async function handleSetPassword(e: React.FormEvent) {
     e.preventDefault();
@@ -105,7 +137,17 @@ export default function AccountSetupPage() {
           </h1>
           <p className="mt-1 text-center text-sm text-mist">Elora Tech Institute student dashboard</p>
 
-          {step === "checking" && (
+          {step === "confirm" && (
+            <div className="mt-8 flex flex-col items-center gap-4 text-center">
+              <MailCheck className="h-8 w-8 text-signal-400" aria-hidden="true" />
+              <p className="text-sm text-white/90">Click below to verify it's you and continue setting up your account.</p>
+              <button onClick={handleConfirm} className="btn-primary w-full">
+                Continue
+              </button>
+            </div>
+          )}
+
+          {step === "verifying" && (
             <div className="mt-8 flex justify-center">
               <Loader2 className="h-5 w-5 animate-spin text-mist" aria-hidden="true" />
             </div>

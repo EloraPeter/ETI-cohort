@@ -212,12 +212,17 @@ async function provisionStudentAccount(params: {
       options: { redirectTo },
     });
 
-    if (linkError || !link?.properties?.action_link) {
+    if (linkError || !link?.properties?.hashed_token) {
       console.error("provisionStudentAccount: could not generate setup link for", params.email, linkError);
       return null;
     }
 
-    return link.properties.action_link;
+    // Send our own link with the raw token_hash rather than Supabase's
+    // action_link. action_link auto-verifies on GET, which gets silently
+    // consumed by email providers' automatic link-safety scanners before
+    // the student ever clicks it. token_hash is only verified client-side
+    // via an explicit user action on /account/setup (see that page).
+    return `${redirectTo}?token_hash=${encodeURIComponent(link.properties.hashed_token)}&type=recovery`;
   } catch (err) {
     console.error("provisionStudentAccount failed:", err);
     return null;
