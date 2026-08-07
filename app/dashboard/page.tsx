@@ -2,10 +2,21 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Hourglass, IdCard, LogOut, Loader2, CheckCircle2, Circle, UserCircle } from "lucide-react";
+import {
+  CalendarDays,
+  Hourglass,
+  IdCard,
+  LogOut,
+  Loader2,
+  CheckCircle2,
+  Circle,
+  UserCircle,
+  ExternalLink,
+  PartyPopper,
+} from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { createClient } from "@/lib/supabase/client";
-import type { Cohort, ChecklistItem, Student } from "@/lib/supabase/types";
+import type { Cohort, ChecklistItemWithProgress, Student } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +29,8 @@ export default function StudentDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Student | null>(null);
   const [cohort, setCohort] = useState<Cohort | null>(null);
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
-  const [togglingKey, setTogglingKey] = useState<string | null>(null);
+  const [checklist, setChecklist] = useState<ChecklistItemWithProgress[]>([]);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -58,18 +69,34 @@ export default function StudentDashboardPage() {
     if (!checkingAuth && accessToken) load();
   }, [checkingAuth, accessToken, load]);
 
-  async function toggleChecklistItem(item: ChecklistItem) {
-    setTogglingKey(item.item_key);
+  async function toggleItem(item: ChecklistItemWithProgress) {
+    setBusyKey(item.item_key);
     const res = await authedFetch("/api/student/checklist", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ itemKey: item.item_key, completed: !item.completed_at }),
     });
-    if (res.ok) {
-      const { item: updated } = await res.json();
-      setChecklist((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+    if (res.ok) await load();
+    setBusyKey(null);
+  }
+
+  async function handleAction(item: ChecklistItemWithProgress) {
+    // "calendar" builds its URL from the student code rather than a
+    // stored action_url, since it needs to embed cohort data.
+    const url = item.item_key === "calendar" && student ? `/api/onboarding/${student.student_code}/calendar` : item.action_url;
+    if (!url) return;
+
+    if (!item.completed_at) {
+      setBusyKey(item.item_key);
+      await authedFetch("/api/student/checklist", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemKey: item.item_key, completed: true }),
+      });
+      await load();
+      setBusyKey(null);
     }
-    setTogglingKey(null);
+    window.open(url, "_blank", "noopener,noreferrer");
   }
 
   async function handleSignOut() {
@@ -90,8 +117,12 @@ export default function StudentDashboardPage() {
   const startsOnFormatted = cohort
     ? new Date(cohort.starts_on).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" })
     : null;
-  const completedCount = checklist.filter((i) => i.completed_at).length;
+  const daysUntilStart = cohort
+    ? Math.ceil((new Date(cohort.starts_on).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
   const displayName = (student.preferred_name ?? student.full_name).split(" ")[0];
+
+  const allReady = checklist.length > 0 && checklist.every((item) => item.completed_at);
 
   return (
     <main className="section-grid-bg min-h-screen py-16">
@@ -135,6 +166,9 @@ export default function StudentDashboardPage() {
                 <CalendarDays className="h-5 w-5 text-sky-400" aria-hidden="true" />
                 <p className="mt-2 text-xs uppercase tracking-wide text-mist">Starts</p>
                 <p className="mt-1 text-sm font-semibold text-white">{startsOnFormatted}</p>
+                {daysUntilStart !== null && daysUntilStart >= 0 && (
+                  <p className="mt-0.5 text-xs text-mist">{daysUntilStart === 0 ? "Today!" : `${daysUntilStart} days to go`}</p>
+                )}
               </div>
               <div>
                 <Hourglass className="h-5 w-5 text-sky-400" aria-hidden="true" />
@@ -145,39 +179,148 @@ export default function StudentDashboardPage() {
           )}
         </div>
 
-        <div className="glass-panel mt-6 p-6 sm:p-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-sky-400">Cohort prep checklist</h2>
-            <span className="text-xs text-mist">
-              {completedCount}/{checklist.length} done
-            </span>
-          </div>
-          <ul className="mt-4 space-y-1">
-            {checklist.map((item) => {
-              const isDone = Boolean(item.completed_at);
-              const isToggling = togglingKey === item.item_key;
-              return (
-                <li key={item.id}>
-                  <button
-                    onClick={() => toggleChecklistItem(item)}
-                    disabled={isToggling}
-                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left text-sm hover:bg-white/[0.04] disabled:opacity-60"
-                  >
-                    {isToggling ? (
-                      <Loader2 className="h-4 w-4 shrink-0 animate-spin text-mist" aria-hidden="true" />
-                    ) : isDone ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-signal-400" aria-hidden="true" />
-                    ) : (
-                      <Circle className="h-4 w-4 shrink-0 text-mist" aria-hidden="true" />
-                    )}
-                    <span className={isDone ? "text-white/50 line-through" : "text-white/90"}>{item.label}</span>
-                  </button>
+        {allReady ? (
+          <div className="glass-panel mt-6 p-6 text-center sm:p-8">
+            <PartyPopper className="mx-auto h-9 w-9 text-amber-400" aria-hidden="true" />
+            <h2 className="mt-3 text-xl font-semibold text-white">You're Ready for ETI Cohort!</h2>
+            <p className="mt-1 text-sm text-white/70">Your preparation is complete.</p>
+            <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-2 text-left text-sm text-white/90">
+              {checklist.map((item) => (
+                <li key={item.id} className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-signal-400" aria-hidden="true" />
+                  {item.title}
                 </li>
-              );
-            })}
-          </ul>
-        </div>
+              ))}
+            </ul>
+            {daysUntilStart !== null && daysUntilStart >= 0 && (
+              <p className="mt-5 text-sm text-white/70">
+                We can't wait to start with you {daysUntilStart === 0 ? "today" : `in ${daysUntilStart} days`} 🚀
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="glass-panel mt-6 p-6 sm:p-8">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-sky-400">Cohort prep checklist</h2>
+            <div className="mt-4 space-y-5">
+              {checklist.map((item) => (
+                <ChecklistSection key={item.id} item={item} busyKey={busyKey} onToggle={toggleItem} onAction={handleAction} />
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
     </main>
+  );
+}
+
+function ChecklistSection({
+  item,
+  busyKey,
+  onToggle,
+  onAction,
+}: {
+  item: ChecklistItemWithProgress;
+  busyKey: string | null;
+  onToggle: (item: ChecklistItemWithProgress) => void;
+  onAction: (item: ChecklistItemWithProgress) => void;
+}) {
+  const isDone = Boolean(item.completed_at);
+
+  if (item.item_type === "composite") {
+    const doneCount = item.children.filter((c) => c.completed_at).length;
+    return (
+      <div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {isDone ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-signal-400" aria-hidden="true" />
+            ) : (
+              <Circle className="h-4 w-4 shrink-0 text-mist" aria-hidden="true" />
+            )}
+            <span className={`text-sm font-medium ${isDone ? "text-white/60" : "text-white"}`}>
+              {isDone ? `✅ ${item.title.replace(/^Prepare /, "").replace(/^Complete /, "")} Ready` : item.title}
+            </span>
+          </div>
+          <span className="text-xs text-mist">
+            {doneCount}/{item.children.length} completed
+          </span>
+        </div>
+        <ul className="mt-2 space-y-1 border-l border-white/10 pl-4">
+          {item.children.map((child) => (
+            <ChecklistLeaf key={child.id} item={child} busy={busyKey === child.item_key} onToggle={onToggle} onAction={onAction} />
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  return (
+    <ul>
+      <ChecklistLeaf item={item} busy={busyKey === item.item_key} onToggle={onToggle} onAction={onAction} />
+    </ul>
+  );
+}
+
+function ChecklistLeaf({
+  item,
+  busy,
+  onToggle,
+  onAction,
+}: {
+  item: ChecklistItemWithProgress;
+  busy: boolean;
+  onToggle: (item: ChecklistItemWithProgress) => void;
+  onAction: (item: ChecklistItemWithProgress) => void;
+}) {
+  const isDone = Boolean(item.completed_at);
+  const isComingSoon = (item.item_type === "video" || item.item_type === "download") && !item.action_url;
+
+  const icon = busy ? (
+    <Loader2 className="h-4 w-4 shrink-0 animate-spin text-mist" aria-hidden="true" />
+  ) : isDone ? (
+    <CheckCircle2 className="h-4 w-4 shrink-0 text-signal-400" aria-hidden="true" />
+  ) : (
+    <Circle className="h-4 w-4 shrink-0 text-mist" aria-hidden="true" />
+  );
+
+  if (item.item_type === "task") {
+    if (item.completion_method === "system_verified") {
+      return (
+        <li className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm">
+          {icon}
+          <span className={isDone ? "text-white/50" : "text-white/70"}>{item.title}</span>
+        </li>
+      );
+    }
+    return (
+      <li>
+        <button
+          onClick={() => onToggle(item)}
+          disabled={busy}
+          className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left text-sm hover:bg-white/[0.04] disabled:opacity-60"
+        >
+          {icon}
+          <span className={isDone ? "text-white/50 line-through" : "text-white/90"}>{item.title}</span>
+        </button>
+      </li>
+    );
+  }
+
+  // video / download / redirect — action button, opens link + marks complete
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-lg px-2 py-2 hover:bg-white/[0.04]">
+      <span className="flex items-center gap-3 text-sm">
+        {icon}
+        <span className={isDone ? "text-white/50" : "text-white/90"}>{item.title}</span>
+      </span>
+      <button
+        onClick={() => onAction(item)}
+        disabled={busy || isComingSoon}
+        className="flex shrink-0 items-center gap-1 rounded-md border border-white/10 px-2.5 py-1 text-xs font-medium text-white/80 hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        {isComingSoon ? "Coming soon" : item.action_label ?? "Open"}
+        {!isComingSoon && <ExternalLink className="h-3 w-3" aria-hidden="true" />}
+      </button>
+    </li>
   );
 }

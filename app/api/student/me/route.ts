@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyStudentRequest } from "@/lib/supabase/verifyStudent";
+import { getStudentChecklist } from "@/lib/checklist/getStudentChecklist";
 
 export async function GET(request: Request) {
   const student = await verifyStudentRequest(request);
@@ -10,14 +11,10 @@ export async function GET(request: Request) {
 
   const supabase = createAdminClient();
 
-  const [{ data: cohort }, { data: checklist }] = await Promise.all([
+  const [{ data: cohort }, checklist] = await Promise.all([
     supabase.from("cohorts").select("*").eq("id", student.cohort_id).single(),
-    supabase
-      .from("student_checklist_items")
-      .select("*")
-      .eq("student_id", student.id)
-      .order("created_at", { ascending: true }),
+    getStudentChecklist(student.id),
   ]);
 
-  return NextResponse.json({ student, cohort: cohort ?? null, checklist: checklist ?? [] });
+  return NextResponse.json({ student, cohort: cohort ?? null, checklist });
 }

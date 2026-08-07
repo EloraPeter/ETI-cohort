@@ -40,6 +40,13 @@ export interface Cohort {
   slots_total: number | null;
   is_open: boolean;
   created_at: string;
+  weekly_schedule: WeeklyScheduleEntry[] | null;
+}
+
+export interface WeeklyScheduleEntry {
+  day: string;
+  start_time: string;
+  end_time: string;
 }
 
 export interface Registration {
@@ -150,14 +157,42 @@ export interface StudentInsert {
   status?: "active" | "inactive" | "withdrawn";
 }
 
+export type ChecklistItemType = "task" | "video" | "download" | "redirect" | "composite";
+export type CompletionMethod = "manual" | "button_click" | "system_verified" | "parent_auto";
+export type CompletionSource = "manual" | "button_click" | "video_complete" | "system_verified" | "parent_auto";
+
 export interface ChecklistItem {
   [key: string]: unknown;
   id: string;
-  student_id: string;
   item_key: string;
-  label: string;
-  completed_at: string | null;
+  parent_key: string | null;
+  title: string;
+  description: string | null;
+  item_type: ChecklistItemType;
+  action_url: string | null;
+  action_label: string | null;
+  completion_method: CompletionMethod;
+  sort_order: number;
+  is_active: boolean;
   created_at: string;
+}
+
+export interface StudentChecklistProgress {
+  [key: string]: unknown;
+  id: string;
+  student_id: string;
+  checklist_item_id: string;
+  completed_at: string | null;
+  completion_source: CompletionSource | null;
+  created_at: string;
+}
+
+/** A checklist item joined with the student's progress on it, used
+ *  throughout the dashboard/API rather than the two raw tables. */
+export interface ChecklistItemWithProgress extends ChecklistItem {
+  completed_at: string | null;
+  completion_source: CompletionSource | null;
+  children: ChecklistItemWithProgress[];
 }
 
 export interface Database {
@@ -187,7 +222,13 @@ export interface Database {
         Update: Partial<Student>;
         Relationships: [];
       };
-      student_checklist_items: {
+      student_checklist_progress: {
+        Row: StudentChecklistProgress;
+        Insert: Partial<StudentChecklistProgress>;
+        Update: Partial<StudentChecklistProgress>;
+        Relationships: [];
+      };
+      checklist_items: {
         Row: ChecklistItem;
         Insert: Partial<ChecklistItem>;
         Update: Partial<ChecklistItem>;

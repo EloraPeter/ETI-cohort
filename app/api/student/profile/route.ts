@@ -66,12 +66,19 @@ export async function PATCH(request: Request) {
 
   // If the profile just got marked complete, tick that checklist item too.
   if (typeof update.profile_completed_at === "string") {
-    await supabase
-      .from("student_checklist_items")
-      .update({ completed_at: update.profile_completed_at })
-      .eq("student_id", student.id)
+    const { data: profileItem } = await supabase
+      .from("checklist_items")
+      .select("id")
       .eq("item_key", "profile")
-      .is("completed_at", null);
+      .single();
+    if (profileItem) {
+      await supabase
+        .from("student_checklist_progress")
+        .update({ completed_at: update.profile_completed_at, completion_source: "system_verified" })
+        .eq("student_id", student.id)
+        .eq("checklist_item_id", profileItem.id)
+        .is("completed_at", null);
+    }
   }
 
   return NextResponse.json({ student: updated });

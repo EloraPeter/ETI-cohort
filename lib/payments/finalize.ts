@@ -156,6 +156,7 @@ export async function finalizeEnrollment(params: FinalizeEnrollmentParams): Prom
     studentCode,
     onboardingUrl,
     accountSetupUrl,
+    calendarUrl: `${siteUrl}/api/onboarding/${studentCode}/calendar`,
     cohortName: cohort.name,
     startsOn: cohort.starts_on,
     durationWeeks: cohort.duration_weeks,

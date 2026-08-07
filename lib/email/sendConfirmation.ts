@@ -6,6 +6,7 @@ interface ConfirmationEmailParams {
   studentCode: string;
   onboardingUrl: string;
   accountSetupUrl: string | null;
+  calendarUrl: string;
   cohortName: string;
   startsOn: string;
   durationWeeks: number;
@@ -44,6 +45,11 @@ export async function sendEnrollmentConfirmationEmail(params: ConfirmationEmailP
       <p style="margin: 24px 0;">
         <a href="${params.onboardingUrl}" style="background:#1D4ED8;color:white;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:600;">
           View your onboarding details
+        </a>
+      </p>
+      <p style="margin: 0 0 24px;">
+        <a href="${params.calendarUrl}" style="background:#38BDF8;color:#0F172A;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:600;">
+          Add ETI Cohort Schedule to Calendar
         </a>
       </p>
       ${
