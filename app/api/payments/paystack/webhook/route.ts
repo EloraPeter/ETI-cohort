@@ -69,10 +69,11 @@ export async function POST(request: Request) {
       paystack: { reference, transactionId },
     });
   } catch (err) {
-    console.error("Webhook: finalizeEnrollment failed:", err);
-    // Return 200 anyway once signature is verified and the data looks
-    // legitimate — Paystack will retry on non-2xx, and a transient DB
-    // error here is better resolved via the callback page's re-verify.
+    console.error("Webhook: finalizeEnrollment failed for payment", payment.id, err);
+    // Return non-2xx so Paystack retries — swallowing this and returning
+    // 200 leaves the payment stuck at "paid" with no student forever,
+    // since nothing else will ever call finalizeEnrollment again for it.
+    return NextResponse.json({ error: "Enrollment finalization failed, please retry." }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });
