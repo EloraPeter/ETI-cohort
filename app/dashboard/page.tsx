@@ -17,6 +17,7 @@ import {
 import { Container } from "@/components/ui/Container";
 import { createClient } from "@/lib/supabase/client";
 import type { Cohort, ChecklistItemWithProgress, Student } from "@/lib/supabase/types";
+import { ROUTES } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default function StudentDashboardPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        router.replace("/login");
+        router.replace(ROUTES.login);
         return;
       }
       setAccessToken(data.session.access_token);
@@ -53,7 +54,7 @@ export default function StudentDashboardPage() {
     setLoading(true);
     const res = await authedFetch("/api/student/me");
     if (res.status === 401) {
-      router.replace("/login");
+      router.replace(ROUTES.login);
       return;
     }
     if (res.ok) {
@@ -101,7 +102,7 @@ export default function StudentDashboardPage() {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    router.replace("/login");
+    router.replace(ROUTES.login);
   }
 
   if (checkingAuth || loading) {
@@ -146,7 +147,7 @@ export default function StudentDashboardPage() {
             <UserCircle className="h-5 w-5 shrink-0 text-signal-400" aria-hidden="true" />
             <p className="text-sm text-white/90">
               Your profile isn't complete yet.{" "}
-              <a href="/account/setup" className="font-medium text-signal-400 underline">
+              <a href={ROUTES.accountSetup} className="font-medium text-signal-400 underline">
                 Finish it
               </a>{" "}
               so we can prepare your cohort experience.

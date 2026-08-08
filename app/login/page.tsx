@@ -1,21 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { createClient } from "@/lib/supabase/client";
+import { ROUTES } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
 export default function StudentLoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const [checkingSession, setCheckingSession] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Already signed in? Skip the form entirely.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.replace(ROUTES.dashboard);
+        return;
+      }
+      setCheckingSession(false);
+    });
+  }, [router, supabase]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,7 +42,15 @@ export default function StudentLoginPage() {
       setError("Invalid email or password.");
       return;
     }
-    router.push("/dashboard");
+    router.push(ROUTES.dashboard);
+  }
+
+  if (checkingSession) {
+    return (
+      <main className="section-grid-bg flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-mist" aria-hidden="true" />
+      </main>
+    );
   }
 
   return (

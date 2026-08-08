@@ -6,6 +6,7 @@ import { KeyRound, Loader2, CheckCircle2, MailCheck } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { createClient } from "@/lib/supabase/client";
+import { ROUTES } from "@/lib/routes";
 
 // Reads token_hash/type from the URL — never statically prerendered.
 export const dynamic = "force-dynamic";
@@ -122,7 +123,7 @@ function AccountSetupForm() {
       return;
     }
     setStep("done");
-    setTimeout(() => router.push("/dashboard"), 1200);
+    setTimeout(() => router.push(ROUTES.dashboard), 1200);
   }
 
   return (
