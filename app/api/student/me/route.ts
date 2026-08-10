@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
   const [{ data: cohort }, checklist] = await Promise.all([
     supabase.from("cohorts").select("*").eq("id", student.cohort_id).single(),
-    getStudentChecklist(student.id),
+    getStudentChecklist(student.id, student.cohort_id),
   ]);
 
   return NextResponse.json({ student, cohort: cohort ?? null, checklist });

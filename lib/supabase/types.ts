@@ -165,7 +165,8 @@ export interface ChecklistItem {
   [key: string]: unknown;
   id: string;
   item_key: string;
-  parent_key: string | null;
+  parent_id: string | null;
+  cohort_id: string | null;
   title: string;
   description: string | null;
   item_type: ChecklistItemType;

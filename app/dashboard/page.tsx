@@ -82,9 +82,19 @@ export default function StudentDashboardPage() {
   }
 
   async function handleAction(item: ChecklistItemWithProgress) {
-    // "calendar" builds its URL from the student code rather than a
-    // stored action_url, since it needs to embed cohort data.
-    const url = item.item_key === "calendar" && student ? `/api/onboarding/${student.student_code}/calendar` : item.action_url;
+    // "calendar" and "orientation-handbook" both resolve their URL
+    // dynamically rather than opening a stored action_url directly —
+    // calendar needs cohort data embedded, and the handbook lives in a
+    // private bucket so it needs a short-lived signed URL each time.
+    let url: string | null;
+    if (item.item_key === "calendar" && student) {
+      url = `/api/onboarding/${student.student_code}/calendar`;
+    } else if (item.item_key === "orientation-handbook") {
+      const res = await authedFetch("/api/student/resources/handbook-url");
+      url = res.ok ? (await res.json()).url : null;
+    } else {
+      url = item.action_url;
+    }
     if (!url) return;
 
     if (!item.completed_at) {
