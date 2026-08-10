@@ -123,24 +123,24 @@ export const pricingInclusions = [
 ] as const;
 
 export const testimonials = [
-  {
-    name: "Testimonial Name",
-    role: "Cohort graduate",
-    quote:
-      "Replace with a real graduate quote about what changed for them — be specific about before/after, not generic praise.",
-  },
-  {
-    name: "Testimonial Name",
-    role: "Cohort graduate",
-    quote:
-      "Replace with a real quote about a specific project they shipped or a specific skill that finally clicked.",
-  },
-  {
-    name: "Testimonial Name",
-    role: "Cohort graduate",
-    quote:
-      "Replace with a real quote about the mentorship or community experience, in their own words.",
-  },
+{
+name: "Ajiri D.",
+role: "ETI Student",
+quote:
+"Elora Training Institute (ETI) provides a lot of helpful insight and guidance.",
+},
+{
+name: "Chukwudubem O.",
+role: "ETI Student",
+quote:
+"Elora Tech Institute provided excellent service and support. Their team is knowledgeable, responsive, and delivered quality solutions. I'm impressed with their professionalism and would definitely recommend them to others.",
+},
+{
+name: "Comfort E. Influence",
+role: "ETI Student",
+quote:
+"Elora’s training at ETI transformed my career. Her program helped me build real-world projects with confidence.",
+},
 ] as const;
 
 export const faqs = [
