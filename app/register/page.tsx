@@ -31,6 +31,13 @@ export default function RegisterPage() {
         <div className="glass-panel mt-10 p-6 sm:p-10">
           <RegistrationForm />
         </div>
+
+        <p className="mt-6 text-center text-sm text-mist">
+          Already started your enrollment?{" "}
+          <Link href="/recovery" className="font-medium text-signal-400 underline">
+            Continue your enrollment
+          </Link>
+        </p>
       </Container>
     </main>
   );
