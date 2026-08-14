@@ -18,6 +18,7 @@ import { Container } from "@/components/ui/Container";
 import { createClient } from "@/lib/supabase/client";
 import type { Cohort, ChecklistItemWithProgress, Student } from "@/lib/supabase/types";
 import { ROUTES } from "@/lib/routes";
+import { formatWeeklySchedule } from "@/lib/calendar/formatSchedule";
 
 export const dynamic = "force-dynamic";
 
@@ -165,7 +166,8 @@ export default function StudentDashboardPage() {
           </div>
         )}
 
-        <div className="glass-panel mt-6 grid grid-cols-1 gap-4 p-6 text-left sm:grid-cols-3 sm:p-8">
+        <div className="glass-panel mt-6 p-6 text-left sm:p-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <IdCard className="h-5 w-5 text-sky-400" aria-hidden="true" />
             <p className="mt-2 text-xs uppercase tracking-wide text-mist">Student ID</p>
@@ -187,6 +189,20 @@ export default function StudentDashboardPage() {
                 <p className="mt-1 text-sm font-semibold text-white">{cohort.duration_weeks} weeks</p>
               </div>
             </>
+          )}
+          </div>
+
+          {cohort?.weekly_schedule && cohort.weekly_schedule.length > 0 && (
+            <div className="mt-5 border-t border-white/10 pt-4">
+              <p className="text-xs uppercase tracking-wide text-mist">Class Schedule</p>
+              <div className="mt-1.5 space-y-0.5">
+                {formatWeeklySchedule(cohort.weekly_schedule).map((line) => (
+                  <p key={line} className="text-sm font-semibold text-white">
+                    {line}
+                  </p>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
@@ -284,7 +300,19 @@ function ChecklistLeaf({
   onAction: (item: ChecklistItemWithProgress) => void;
 }) {
   const isDone = Boolean(item.completed_at);
-  const isComingSoon = (item.item_type === "video" || item.item_type === "download") && !item.action_url;
+  // "calendar" resolves its real URL dynamically at click time (see
+  // handleAction) rather than from a stored action_url, so its
+  // permanently-null action_url doesn't mean "not ready". Every other
+  // redirect/video/download item's null action_url does mean
+  // not-configured-yet — including orientation-handbook (still gated
+  // on its action_url, now a storage path once uploaded) and the new
+  // cohort-whatsapp item, which ships with a null action_url by
+  // design until an admin sets it.
+  const hasDynamicResolution = item.item_key === "calendar";
+  const isComingSoon =
+    !hasDynamicResolution &&
+    (item.item_type === "video" || item.item_type === "download" || item.item_type === "redirect") &&
+    !item.action_url;
 
   const icon = busy ? (
     <Loader2 className="h-4 w-4 shrink-0 animate-spin text-mist" aria-hidden="true" />

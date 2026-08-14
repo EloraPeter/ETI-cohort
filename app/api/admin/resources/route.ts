@@ -22,11 +22,12 @@ export async function GET(request: Request) {
         itemKey: config.itemKey,
         label: config.label,
         kind: config.kind,
+        scope: config.scope,
         // For "file" items action_url is a private storage path, not
         // something to show directly — just report whether it's set.
         configured: Boolean(item?.action_url),
         url: config.kind === "url" ? (item?.action_url ?? null) : null,
-        isOverride: item?.cohort_id === cohortId,
+        isOverride: config.scope === "cohort" && item?.cohort_id === cohortId,
       };
     })
   );

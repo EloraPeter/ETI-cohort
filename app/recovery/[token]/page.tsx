@@ -9,14 +9,25 @@ import { ROUTES } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
-type Step = "confirm" | "verifying" | "resuming" | "error" | "already_enrolled" | "cohort_closed" | "awaiting_review" | "rejected" | "ambiguous";
+type Step =
+  | "confirm"
+  | "verifying"
+  | "resuming"
+  | "token_error"
+  | "paystack_error"
+  | "already_enrolled"
+  | "cohort_closed"
+  | "awaiting_review"
+  | "rejected"
+  | "ambiguous";
 
 export default function RecoveryTokenPage() {
   const params = useParams<{ token: string }>();
   const router = useRouter();
 
   const [step, setStep] = useState<Step>("confirm");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [tokenErrorMessage, setTokenErrorMessage] = useState<string | null>(null);
+  const [paystackErrorMessage, setPaystackErrorMessage] = useState<string | null>(null);
   const [rejectionNote, setRejectionNote] = useState<string | null>(null);
   const [bankTransferPaymentId, setBankTransferPaymentId] = useState<string | null>(null);
 
@@ -30,8 +41,8 @@ export default function RecoveryTokenPage() {
     });
 
     if (!res.ok) {
-      setErrorMessage("This recovery link is invalid or has expired.");
-      setStep("error");
+      setTokenErrorMessage("This recovery link is invalid or has expired.");
+      setStep("token_error");
       return;
     }
 
@@ -58,8 +69,8 @@ export default function RecoveryTokenPage() {
           window.location.href = initData.authorizationUrl;
           return;
         }
-        setErrorMessage("Couldn't resume your payment. Please try again or contact support.");
-        setStep("error");
+        setPaystackErrorMessage("Couldn't resume your payment. Please try again or contact support.");
+        setStep("paystack_error");
         return;
       }
 
@@ -107,11 +118,22 @@ export default function RecoveryTokenPage() {
             </div>
           )}
 
-          {step === "error" && (
+          {step === "token_error" && (
             <>
               <XCircle className="mx-auto h-10 w-10 text-rose-400" aria-hidden="true" />
-              <h1 className="mt-4 text-xl font-semibold text-white">Link expired</h1>
-              <p className="mt-3 text-sm leading-relaxed text-mist">{errorMessage}</p>
+              <h1 className="mt-4 text-xl font-semibold text-white">Recovery link expired</h1>
+              <p className="mt-3 text-sm leading-relaxed text-mist">{tokenErrorMessage}</p>
+              <Link href="/recovery" className="btn-primary mt-6 inline-flex w-full justify-center">
+                Request a new link
+              </Link>
+            </>
+          )}
+
+          {step === "paystack_error" && (
+            <>
+              <XCircle className="mx-auto h-10 w-10 text-rose-400" aria-hidden="true" />
+              <h1 className="mt-4 text-xl font-semibold text-white">Couldn't resume your payment</h1>
+              <p className="mt-3 text-sm leading-relaxed text-mist">{paystackErrorMessage}</p>
               <Link href="/recovery" className="btn-primary mt-6 inline-flex w-full justify-center">
                 Request a new link
               </Link>

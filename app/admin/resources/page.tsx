@@ -3,10 +3,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Loader2, FileText, Video, Users, CheckCircle2, Upload, Link as LinkIcon } from "lucide-react";
+import {
+  LogOut,
+  Loader2,
+  FileText,
+  Video,
+  Users,
+  MessageCircle,
+  CheckCircle2,
+  Upload,
+  Link as LinkIcon,
+  Lock,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { createClient } from "@/lib/supabase/client";
 import { MANAGED_RESOURCE_ITEMS } from "@/lib/checklist/managedResources";
+import type { WeeklyScheduleEntry } from "@/lib/supabase/types";
 
 // Session-gated and data-driven — never statically prerendered.
 export const dynamic = "force-dynamic";
@@ -15,13 +29,17 @@ interface CohortOption {
   id: string;
   name: string;
   starts_on: string;
+  duration_weeks: number;
   is_open: boolean;
+  weekly_schedule: WeeklyScheduleEntry[] | null;
+  timezone: string;
 }
 
 interface ResourceStatus {
   itemKey: string;
   label: string;
   kind: "file" | "url";
+  scope: "global" | "cohort";
   configured: boolean;
   url: string | null;
   isOverride: boolean;
@@ -30,8 +48,12 @@ interface ResourceStatus {
 const ICONS: Record<string, typeof FileText> = {
   "orientation-handbook": FileText,
   "orientation-video": Video,
+  "cohort-whatsapp": MessageCircle,
   community: Users,
 };
+
+const DAY_OPTIONS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const TIMEZONE_OPTIONS = ["Africa/Lagos", "Africa/Cairo", "Africa/Nairobi", "Europe/London", "America/New_York", "America/Los_Angeles", "Asia/Dubai"];
 
 export default function AdminResourcesPage() {
   const router = useRouter();
@@ -46,6 +68,12 @@ export default function AdminResourcesPage() {
   const [loading, setLoading] = useState(false);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Schedule editor draft state — separate from `cohorts` so edits don't
+  // vanish mid-typing if something else triggers a re-fetch.
+  const [scheduleDraft, setScheduleDraft] = useState<WeeklyScheduleEntry[]>([]);
+  const [timezoneDraft, setTimezoneDraft] = useState("Africa/Lagos");
+  const [savingSchedule, setSavingSchedule] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -97,7 +125,10 @@ export default function AdminResourcesPage() {
 
   useEffect(() => {
     if (cohortId) loadResources(cohortId);
-  }, [cohortId, loadResources]);
+    const selected = cohorts.find((c) => c.id === cohortId);
+    setScheduleDraft(selected?.weekly_schedule ?? []);
+    setTimezoneDraft(selected?.timezone ?? "Africa/Lagos");
+  }, [cohortId, loadResources, cohorts]);
 
   async function handleSetUrl(itemKey: string, url: string) {
     if (!url.trim()) return;
@@ -127,6 +158,32 @@ export default function AdminResourcesPage() {
     setSavingKey(null);
   }
 
+  function addScheduleRow() {
+    setScheduleDraft((prev) => [...prev, { day: "Monday", start_time: "18:00", end_time: "20:00" }]);
+  }
+
+  function removeScheduleRow(index: number) {
+    setScheduleDraft((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateScheduleRow(index: number, patch: Partial<WeeklyScheduleEntry>) {
+    setScheduleDraft((prev) => prev.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
+  }
+
+  async function handleSaveSchedule() {
+    setSavingSchedule(true);
+    setMessage(null);
+    const res = await authedFetch(`/api/admin/cohorts/${cohortId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ weekly_schedule: scheduleDraft, timezone: timezoneDraft }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setMessage(res.ok ? "Schedule saved." : data.error ?? "Could not save the schedule.");
+    if (res.ok) await loadCohorts();
+    setSavingSchedule(false);
+  }
+
   async function handleSignOut() {
     await supabase.auth.signOut();
     router.replace("/admin");
@@ -145,8 +202,8 @@ export default function AdminResourcesPage() {
       <Container className="max-w-4xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-semibold">Onboarding Resources</h1>
-            <p className="text-sm text-ink-700">Manage the student handbook, orientation video, and community link per cohort</p>
+            <h1 className="font-display text-2xl font-semibold">Onboarding & Cohort Operations</h1>
+            <p className="text-sm text-ink-700">Manage the class schedule and onboarding resources per cohort</p>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/admin/dashboard" className="text-sm font-medium text-signal-500 hover:underline">
@@ -185,6 +242,83 @@ export default function AdminResourcesPage() {
 
         {message && <p className="mt-4 rounded-lg border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-800">{message}</p>}
 
+        {/* Class schedule editor */}
+        <div className="mt-6 rounded-2xl border border-ink-900/10 bg-white p-6">
+          <h2 className="font-display text-lg font-semibold">Class Schedule</h2>
+          <div className="mt-4 space-y-3">
+            {scheduleDraft.length === 0 && <p className="text-sm text-ink-700">No classes added yet.</p>}
+            {scheduleDraft.map((entry, i) => (
+              <div key={i} className="flex flex-wrap items-center gap-2">
+                <select
+                  value={entry.day}
+                  onChange={(e) => updateScheduleRow(i, { day: e.target.value })}
+                  className="rounded-lg border border-ink-900/10 bg-white px-3 py-1.5 text-sm text-ink-900 outline-none focus:border-signal-500"
+                >
+                  {DAY_OPTIONS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="time"
+                  value={entry.start_time}
+                  onChange={(e) => updateScheduleRow(i, { start_time: e.target.value })}
+                  className="rounded-lg border border-ink-900/10 bg-white px-3 py-1.5 text-sm text-ink-900 outline-none focus:border-signal-500"
+                />
+                <span className="text-ink-700">—</span>
+                <input
+                  type="time"
+                  value={entry.end_time}
+                  onChange={(e) => updateScheduleRow(i, { end_time: e.target.value })}
+                  className="rounded-lg border border-ink-900/10 bg-white px-3 py-1.5 text-sm text-ink-900 outline-none focus:border-signal-500"
+                />
+                <button
+                  onClick={() => removeScheduleRow(i)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-ink-900/10 px-2.5 py-1.5 text-xs text-ink-700 hover:bg-paper-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={addScheduleRow}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-ink-900/20 px-3 py-1.5 text-xs font-medium text-ink-700 hover:bg-paper-50"
+            >
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              Add class
+            </button>
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-ink-900/10 pt-4">
+            <label htmlFor="timezone-select" className="text-sm font-medium text-ink-700">
+              Timezone
+            </label>
+            <select
+              id="timezone-select"
+              value={timezoneDraft}
+              onChange={(e) => setTimezoneDraft(e.target.value)}
+              className="rounded-lg border border-ink-900/10 bg-white px-3 py-1.5 text-sm text-ink-900 outline-none focus:border-signal-500"
+            >
+              {TIMEZONE_OPTIONS.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleSaveSchedule}
+              disabled={savingSchedule}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white hover:bg-ink-800 disabled:opacity-50"
+            >
+              {savingSchedule && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
+              Save Schedule
+            </button>
+          </div>
+        </div>
+
+        {/* Resources table */}
         <div className="mt-6 overflow-hidden rounded-2xl border border-ink-900/10 bg-white">
           {loading ? (
             <div className="flex justify-center p-10">
@@ -195,6 +329,7 @@ export default function AdminResourcesPage() {
               <thead className="border-b border-ink-900/10 bg-paper-50 text-xs uppercase tracking-wide text-ink-700">
                 <tr>
                   <th className="px-5 py-3">Resource</th>
+                  <th className="px-5 py-3">Scope</th>
                   <th className="px-5 py-3">Status</th>
                   <th className="px-5 py-3">Action</th>
                 </tr>
@@ -233,7 +368,7 @@ function ResourceRow({
   onUploadFile,
 }: {
   icon: typeof FileText;
-  config: { itemKey: string; label: string; kind: "file" | "url" };
+  config: { itemKey: string; label: string; kind: "file" | "url"; scope: "global" | "cohort" };
   status?: ResourceStatus;
   saving: boolean;
   onSetUrl: (url: string) => void;
@@ -247,6 +382,7 @@ function ResourceRow({
   }, [status?.url]);
 
   const configured = status?.configured ?? false;
+  const isGlobal = config.scope === "global";
 
   return (
     <tr>
@@ -260,6 +396,16 @@ function ResourceRow({
       <td className="px-5 py-4">
         <span
           className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+            isGlobal ? "bg-sky-100 text-sky-700" : "bg-ink-900/5 text-ink-700"
+          }`}
+        >
+          {isGlobal && <Lock className="h-3 w-3" aria-hidden="true" />}
+          {isGlobal ? "Global" : "Cohort-specific"}
+        </span>
+      </td>
+      <td className="px-5 py-4">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
             configured ? "bg-emerald-100 text-emerald-700" : "bg-ink-900/5 text-ink-700"
           }`}
         >
@@ -268,7 +414,11 @@ function ResourceRow({
         </span>
       </td>
       <td className="px-5 py-4">
-        {config.kind === "url" ? (
+        {isGlobal ? (
+          <p className="max-w-xs truncate text-xs text-ink-700" title={status?.url ?? undefined}>
+            {status?.url ?? "—"} <span className="text-ink-400">(read-only — shared by every cohort)</span>
+          </p>
+        ) : config.kind === "url" ? (
           <div className="flex items-center gap-2">
             <input
               type="url"

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const supabase = createAdminClient();
   const { data: cohorts, error } = await supabase
     .from("cohorts")
-    .select("id, name, starts_on, is_open")
+    .select("*")
     .order("starts_on", { ascending: false });
 
   if (error) {

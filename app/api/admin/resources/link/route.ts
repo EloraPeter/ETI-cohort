@@ -3,7 +3,11 @@ import { verifyAdminRequest } from "@/lib/supabase/verifyAdmin";
 import { upsertCohortChecklistItem } from "@/lib/checklist/upsertCohortResource";
 import { MANAGED_RESOURCE_ITEMS } from "@/lib/checklist/managedResources";
 
-const URL_ITEM_KEYS = MANAGED_RESOURCE_ITEMS.filter((r) => r.kind === "url").map((r) => r.itemKey);
+// Only cohort-scoped URL resources are editable here — the global
+// Telegram community (scope: "global") is deliberately excluded, at
+// the API level, not just hidden in the UI, so it can't be
+// overwritten by a direct request either.
+const URL_ITEM_KEYS = MANAGED_RESOURCE_ITEMS.filter((r) => r.kind === "url" && r.scope === "cohort").map((r) => r.itemKey);
 
 export async function POST(request: Request) {
   const email = await verifyAdminRequest(request);
