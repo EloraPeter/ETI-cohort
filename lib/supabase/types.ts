@@ -114,6 +114,8 @@ export interface Payment {
   admin_notes: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
+  recovery_token_hash: string | null;
+  recovery_token_expires_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -165,7 +167,8 @@ export interface ChecklistItem {
   [key: string]: unknown;
   id: string;
   item_key: string;
-  parent_key: string | null;
+  parent_id: string | null;
+  cohort_id: string | null;
   title: string;
   description: string | null;
   item_type: ChecklistItemType;

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import { GraduationCap } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { ROUTES } from "@/lib/routes";
 
 const navLinks = [
   { href: "#curriculum", label: "Curriculum" },
@@ -47,9 +49,21 @@ export function Header() {
           ))}
         </nav>
 
-        <Link href="/register" className="btn-primary !px-5 !py-2.5 !text-xs sm:!px-6 sm:!text-sm">
-          Register Now
-        </Link>
+        {/* Visible at every breakpoint (not just md:flex like the anchor nav
+            above) — existing students need this on mobile too. */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href={ROUTES.login}
+            className="flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-2 text-xs font-medium text-white/80 transition-colors hover:bg-white/[0.06] hover:text-white sm:px-4 sm:text-sm"
+          >
+            <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+            <span className="hidden sm:inline">Student Portal</span>
+            <span className="sm:hidden">Portal</span>
+          </Link>
+          <Link href="/register" className="btn-primary !px-5 !py-2.5 !text-xs sm:!px-6 sm:!text-sm">
+            Register Now
+          </Link>
+        </div>
       </Container>
     </header>
   );
