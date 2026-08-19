@@ -55,6 +55,13 @@ export default function StudentDashboardPage() {
     setLoading(true);
     const res = await authedFetch("/api/student/me");
     if (res.status === 401) {
+      // The client-side Supabase session can still look valid (e.g. no
+      // linked student record, or a token the server no longer accepts)
+      // even though this API call was rejected. Sign out before
+      // redirecting so /login's own getSession() check doesn't see a
+      // "valid" session and bounce straight back here — without this,
+      // the two pages redirect to each other forever.
+      await supabase.auth.signOut();
       router.replace(ROUTES.login);
       return;
     }

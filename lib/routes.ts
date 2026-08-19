@@ -5,5 +5,8 @@ export const ROUTES = {
   login: "/login",
   dashboard: "/dashboard",
   accountSetup: "/account/setup",
+  instructorLogin: "/instructor/login",
   instructorAccountSetup: "/instructor/account/setup",
+  instructorDashboard: "/instructor/dashboard",
+  instructorProfile: "/instructor/profile",
 } as const;

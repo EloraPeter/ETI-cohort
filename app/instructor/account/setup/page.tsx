@@ -1,11 +1,12 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound, Loader2, CheckCircle2, MailCheck } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { createClient } from "@/lib/supabase/client";
+import { ROUTES } from "@/lib/routes";
 
 // Reads token_hash/type from the URL — never statically prerendered.
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export default function InstructorAccountSetupPage() {
 
 function InstructorAccountSetupForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const supabase = createClient();
 
   const [step, setStep] = useState<Step>("confirm");
@@ -95,6 +97,7 @@ function InstructorAccountSetupForm() {
       return;
     }
     setStep("done");
+    setTimeout(() => router.push(ROUTES.instructorDashboard), 1200);
   }
 
   return (
@@ -169,9 +172,7 @@ function InstructorAccountSetupForm() {
             <div className="mt-6 flex flex-col items-center gap-2 text-center">
               <CheckCircle2 className="h-8 w-8 text-signal-400" aria-hidden="true" />
               <p className="text-sm text-white/90">Your account is active.</p>
-              <p className="text-xs text-mist">
-                Your instructor dashboard isn't available yet — an ETI administrator will let you know when it's ready.
-              </p>
+              <p className="text-xs text-mist">Taking you to your dashboard...</p>
             </div>
           )}
         </div>
