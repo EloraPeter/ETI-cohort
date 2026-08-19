@@ -5,6 +5,28 @@ import { verifyAdminRequest } from "@/lib/supabase/verifyAdmin";
 
 const cohortIdSchema = z.object({ cohortId: z.string().uuid("cohortId must be a valid id.") });
 
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const adminEmail = await verifyAdminRequest(request);
+  if (!adminEmail) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  const { id: instructorId } = await params;
+  const supabase = createAdminClient();
+
+  const { data: assignments, error } = await supabase
+    .from("instructor_cohorts")
+    .select("cohort_id, assigned_at, cohorts(id, name, starts_on, is_open)")
+    .eq("instructor_id", instructorId);
+
+  if (error) {
+    console.error("Instructor cohort assignments fetch failed:", error);
+    return NextResponse.json({ error: "Failed to load cohort assignments." }, { status: 500 });
+  }
+
+  return NextResponse.json({ assignments: assignments ?? [] });
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const adminEmail = await verifyAdminRequest(request);
   if (!adminEmail) {

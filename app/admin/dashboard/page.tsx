@@ -144,6 +144,9 @@ export default function AdminDashboardPage() {
             <Link href="/admin/payments" className="text-sm font-medium text-signal-500 hover:underline">
               Payments
             </Link>
+            <Link href="/admin/instructors" className="text-sm font-medium text-signal-500 hover:underline">
+              Instructors
+            </Link>
             <Link href="/admin/resources" className="text-sm font-medium text-signal-500 hover:underline">
               Resources
             </Link>
