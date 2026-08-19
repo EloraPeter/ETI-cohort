@@ -39,6 +39,7 @@ export interface Cohort {
   fee_ngn: number;
   slots_total: number | null;
   is_open: boolean;
+  timezone: string;
   created_at: string;
   weekly_schedule: WeeklyScheduleEntry[] | null;
 }

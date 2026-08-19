@@ -215,6 +215,9 @@ export default function AdminResourcesPage() {
             <Link href="/admin/instructors" className="text-sm font-medium text-signal-500 hover:underline">
               Instructors
             </Link>
+            <Link href="/admin/cohorts" className="text-sm font-medium text-signal-500 hover:underline">
+              Cohorts
+            </Link>
             <button
               onClick={handleSignOut}
               className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"

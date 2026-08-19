@@ -1,45 +1,16 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAdminRequest } from "@/lib/supabase/verifyAdmin";
-import type { WeeklyScheduleEntry } from "@/lib/supabase/types";
-
-const VALID_DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
-function isValidTimezone(tz: string): boolean {
-  try {
-    new Intl.DateTimeFormat(undefined, { timeZone: tz });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function validateWeeklySchedule(value: unknown): WeeklyScheduleEntry[] | string {
-  if (!Array.isArray(value)) return "weekly_schedule must be an array.";
-  if (value.length > 14) return "weekly_schedule has too many entries.";
-
-  const entries: WeeklyScheduleEntry[] = [];
-  for (const raw of value) {
-    if (!raw || typeof raw !== "object") return "Each schedule entry must be an object.";
-    const { day, start_time, end_time } = raw as Record<string, unknown>;
-
-    if (typeof day !== "string" || !VALID_DAYS.includes(day)) {
-      return `Invalid day: ${String(day)}. Must be one of ${VALID_DAYS.join(", ")}.`;
-    }
-    if (typeof start_time !== "string" || !TIME_RE.test(start_time)) {
-      return `Invalid start_time "${String(start_time)}" — expected HH:MM (24-hour).`;
-    }
-    if (typeof end_time !== "string" || !TIME_RE.test(end_time)) {
-      return `Invalid end_time "${String(end_time)}" — expected HH:MM (24-hour).`;
-    }
-    if (end_time <= start_time) {
-      return `On ${day}, end_time must be after start_time.`;
-    }
-    entries.push({ day, start_time, end_time });
-  }
-  return entries;
-}
+import {
+  validateCohortName,
+  validateStartsOn,
+  validateDurationWeeks,
+  validateTimezone,
+  validateWeeklySchedule,
+  validateFeeNgn,
+  validateSlotsTotal,
+  validateIsOpen,
+} from "@/lib/validations/cohort";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const email = await verifyAdminRequest(request);
@@ -60,40 +31,54 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const update: Record<string, unknown> = {};
 
   if (body.name !== undefined) {
-    if (typeof body.name !== "string" || body.name.trim().length === 0 || body.name.length > 200) {
-      return NextResponse.json({ error: "name must be a non-empty string." }, { status: 400 });
-    }
-    update.name = body.name.trim();
+    const result = validateCohortName(body.name);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.name = result.value;
   }
 
   if (body.starts_on !== undefined) {
-    if (typeof body.starts_on !== "string" || Number.isNaN(new Date(body.starts_on).getTime())) {
-      return NextResponse.json({ error: "starts_on must be a valid date." }, { status: 400 });
-    }
-    update.starts_on = body.starts_on;
+    const result = validateStartsOn(body.starts_on);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.starts_on = result.value;
   }
 
   if (body.duration_weeks !== undefined) {
-    const weeks = Number(body.duration_weeks);
-    if (!Number.isInteger(weeks) || weeks < 1 || weeks > 52) {
-      return NextResponse.json({ error: "duration_weeks must be an integer between 1 and 52." }, { status: 400 });
-    }
-    update.duration_weeks = weeks;
+    const result = validateDurationWeeks(body.duration_weeks);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.duration_weeks = result.value;
   }
 
   if (body.timezone !== undefined) {
-    if (typeof body.timezone !== "string" || !isValidTimezone(body.timezone)) {
-      return NextResponse.json({ error: "timezone must be a valid IANA timezone identifier." }, { status: 400 });
-    }
-    update.timezone = body.timezone;
+    const result = validateTimezone(body.timezone);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.timezone = result.value;
   }
 
   if (body.weekly_schedule !== undefined) {
     const result = validateWeeklySchedule(body.weekly_schedule);
-    if (typeof result === "string") {
-      return NextResponse.json({ error: result }, { status: 400 });
-    }
-    update.weekly_schedule = result;
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.weekly_schedule = result.value;
+  }
+
+  // Extended per the Milestone 4 architecture plan — these columns
+  // already exist on `cohorts` (migration 001) but were never
+  // reachable through this validator until now.
+  if (body.fee_ngn !== undefined) {
+    const result = validateFeeNgn(body.fee_ngn);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.fee_ngn = result.value;
+  }
+
+  if (body.slots_total !== undefined) {
+    const result = validateSlotsTotal(body.slots_total);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.slots_total = result.value;
+  }
+
+  if (body.is_open !== undefined) {
+    const result = validateIsOpen(body.is_open);
+    if ("error" in result) return NextResponse.json({ error: result.error }, { status: 400 });
+    update.is_open = result.value;
   }
 
   if (Object.keys(update).length === 0) {

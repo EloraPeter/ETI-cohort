@@ -157,6 +157,9 @@ export default function AdminInstructorsPage() {
             <Link href="/admin/payments" className="text-sm font-medium text-signal-500 hover:underline">
               Payments
             </Link>
+            <Link href="/admin/cohorts" className="text-sm font-medium text-signal-500 hover:underline">
+              Cohorts
+            </Link>
             <Link href="/admin/resources" className="text-sm font-medium text-signal-500 hover:underline">
               Resources
             </Link>
