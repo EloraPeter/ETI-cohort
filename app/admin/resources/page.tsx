@@ -2,9 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  LogOut,
   Loader2,
   FileText,
   Video,
@@ -18,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { AdminNav } from "@/components/admin/AdminNav";
 import { createClient } from "@/lib/supabase/client";
 import { MANAGED_RESOURCE_ITEMS } from "@/lib/checklist/managedResources";
 import type { WeeklyScheduleEntry } from "@/lib/supabase/types";
@@ -206,19 +205,7 @@ export default function AdminResourcesPage() {
             <p className="text-sm text-ink-700">Manage the class schedule and onboarding resources per cohort</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/admin/dashboard" className="text-sm font-medium text-signal-500 hover:underline">
-              Registrations
-            </Link>
-            <Link href="/admin/payments" className="text-sm font-medium text-signal-500 hover:underline">
-              Payments
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"
-            >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
-              Sign out
-            </button>
+            <AdminNav current="/admin/resources" onSignOut={handleSignOut} />
           </div>
         </div>
 

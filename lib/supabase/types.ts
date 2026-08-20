@@ -39,6 +39,7 @@ export interface Cohort {
   fee_ngn: number;
   slots_total: number | null;
   is_open: boolean;
+  timezone: string;
   created_at: string;
   weekly_schedule: WeeklyScheduleEntry[] | null;
 }
@@ -198,9 +199,78 @@ export interface ChecklistItemWithProgress extends ChecklistItem {
   children: ChecklistItemWithProgress[];
 }
 
+export type InstructorStatus = "invited" | "active" | "inactive";
+
+export interface Instructor {
+  [key: string]: unknown;
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  profile_photo_url: string | null;
+  bio: string | null;
+  professional_title: string | null;
+  expertise: string | null;
+  linkedin_url: string | null;
+  github_url: string | null;
+  auth_user_id: string | null;
+  status: InstructorStatus;
+  profile_completed_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InstructorInsert {
+  [key: string]: unknown;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  status?: InstructorStatus;
+  created_by?: string | null;
+}
+
+export interface InstructorCohort {
+  [key: string]: unknown;
+  id: string;
+  instructor_id: string;
+  cohort_id: string;
+  assigned_at: string;
+  assigned_by: string | null;
+}
+
+export interface InstructorCohortInsert {
+  [key: string]: unknown;
+  instructor_id: string;
+  cohort_id: string;
+  assigned_by?: string | null;
+}
+
+/** The 5 fields that determine instructor profile-completion percentage.
+ *  Kept in one place so the derivation logic and any future UI stay in sync. */
+export const INSTRUCTOR_REQUIRED_PROFILE_FIELDS = [
+  "full_name",
+  "email",
+  "phone",
+  "profile_photo_url",
+  "bio",
+] as const;
+
 export interface Database {
   public: {
     Tables: {
+      instructors: {
+        Row: Instructor;
+        Insert: InstructorInsert;
+        Update: Partial<Instructor>;
+        Relationships: [];
+      };
+      instructor_cohorts: {
+        Row: InstructorCohort;
+        Insert: InstructorCohortInsert;
+        Update: Partial<InstructorCohort>;
+        Relationships: [];
+      };
       cohorts: {
         Row: Cohort;
         Insert: Partial<Cohort>;

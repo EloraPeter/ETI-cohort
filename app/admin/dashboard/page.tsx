@@ -3,12 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, Download, LogOut, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Download, Loader2, ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { StatCard } from "@/components/admin/StatCard";
+import { AdminNav } from "@/components/admin/AdminNav";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
 import { registrationsToCsv, downloadCsv } from "@/lib/csv";
 import type { Registration, RegistrationStatus } from "@/lib/supabase/types";
+
+type RegistrationRow = Registration & { student_id: string | null };
 
 // Session-gated and data-driven — never statically prerendered.
 export const dynamic = "force-dynamic";
@@ -27,6 +31,24 @@ const STATUS_OPTIONS: { value: RegistrationStatus | ""; label: string }[] = [
 const filterInputClass =
   "rounded-lg border border-ink-900/10 bg-white px-3 py-2 text-sm text-ink-900 outline-none focus:border-signal-500";
 
+/** A registration only has a student_id once its payment is finalized
+ *  and a students row is created — most rows won't have one, so this
+ *  falls back to plain (non-clickable) text rather than a dead link. */
+function RegistrantName({ row }: { row: RegistrationRow }) {
+  if (!row.student_id) {
+    return <span className="font-medium text-ink-900">{row.full_name}</span>;
+  }
+  return (
+    <Link
+      href={`/admin/students/${row.student_id}`}
+      className="inline-flex items-center gap-1 font-medium text-ink-900 hover:text-signal-500 hover:underline"
+    >
+      {row.full_name}
+      <ArrowUpRight className="h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />
+    </Link>
+  );
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -35,7 +57,7 @@ export default function AdminDashboardPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   const [stats, setStats] = useState({ total: 0, enrolled: 0, pending: 0, withLaptop: 0 });
-  const [rows, setRows] = useState<Registration[]>([]);
+  const [rows, setRows] = useState<RegistrationRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
@@ -141,19 +163,7 @@ export default function AdminDashboardPage() {
             <p className="text-sm text-ink-700">Web Development Cohort — September 2026</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/admin/payments" className="text-sm font-medium text-signal-500 hover:underline">
-              Payments
-            </Link>
-            <Link href="/admin/resources" className="text-sm font-medium text-signal-500 hover:underline">
-              Resources
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"
-            >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
-              Sign out
-            </button>
+            <AdminNav current="/admin/dashboard" onSignOut={handleSignOut} />
           </div>
         </div>
 
@@ -231,28 +241,43 @@ export default function AdminDashboardPage() {
               <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
             </div>
           ) : rows.length === 0 ? (
-            <div className="px-5 py-16 text-center text-sm text-ink-700">
-              No registrations match your filters.
-            </div>
+            <EmptyState message="No registrations match your filters." bare />
           ) : (
             <ul className="divide-y divide-ink-900/10">
               {rows.map((row) => (
-                <li
-                  key={row.id}
-                  className="grid grid-cols-2 gap-2 px-5 py-4 text-sm sm:grid-cols-[1.4fr_1.4fr_0.8fr_0.8fr_1fr_0.9fr] sm:items-center sm:gap-4"
-                >
-                  <span className="font-medium text-ink-900">{row.full_name}</span>
-                  <span className="truncate text-ink-700">{row.email}</span>
-                  <span className="text-ink-700">{row.phone}</span>
-                  <span className="text-ink-700">{row.owns_laptop ? "Yes" : "No"}</span>
-                  <span>
-                    <span className="inline-block rounded-full bg-ink-900/5 px-2.5 py-1 text-xs font-medium capitalize text-ink-800">
-                      {row.status.replace("_", " ")}
+                <li key={row.id} className="px-5 py-4 text-sm">
+                  {/* Mobile: labeled stacked card — the desktop grid below has no visible
+                      column headers on small screens, so it needs its own labeled layout
+                      rather than reusing the same unlabeled grid at a narrower width. */}
+                  <div className="flex flex-col gap-1 sm:hidden">
+                    <div className="flex items-start justify-between gap-2">
+                      <RegistrantName row={row} />
+                      <span className="inline-block shrink-0 rounded-full bg-ink-900/5 px-2.5 py-1 text-xs font-medium capitalize text-ink-800">
+                        {row.status.replace("_", " ")}
+                      </span>
+                    </div>
+                    <p className="truncate text-ink-700">{row.email}</p>
+                    <div className="flex items-center justify-between text-xs text-ink-700/70">
+                      <span>
+                        {row.phone} · {row.owns_laptop ? "Has laptop" : "No laptop"}
+                      </span>
+                      <span>{new Date(row.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Desktop/tablet: column-aligned row, matches the header above */}
+                  <div className="hidden sm:grid sm:grid-cols-[1.4fr_1.4fr_0.8fr_0.8fr_1fr_0.9fr] sm:items-center sm:gap-4">
+                    <RegistrantName row={row} />
+                    <span className="truncate text-ink-700">{row.email}</span>
+                    <span className="text-ink-700">{row.phone}</span>
+                    <span className="text-ink-700">{row.owns_laptop ? "Yes" : "No"}</span>
+                    <span>
+                      <span className="inline-block rounded-full bg-ink-900/5 px-2.5 py-1 text-xs font-medium capitalize text-ink-800">
+                        {row.status.replace("_", " ")}
+                      </span>
                     </span>
-                  </span>
-                  <span className="text-xs text-ink-700/70">
-                    {new Date(row.created_at).toLocaleDateString()}
-                  </span>
+                    <span className="text-xs text-ink-700/70">{new Date(row.created_at).toLocaleDateString()}</span>
+                  </div>
                 </li>
               ))}
             </ul>
