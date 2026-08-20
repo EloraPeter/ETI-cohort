@@ -39,7 +39,36 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to load registrations." }, { status: 500 });
   }
 
-  return NextResponse.json({ data, total: count ?? 0, page, pageSize });
+  // Attach student_id where one exists, so the admin UI can link a
+  // paid registration to its student record. A registration only
+  // gets a students row once finalizeEnrollment() runs (i.e. once
+  // payment is confirmed) — most rows here will have student_id: null,
+  // and that's expected, not an error.
+  const registrationIds = (data ?? []).map((r) => r.id);
+  let studentIdByRegistrationId = new Map<string, string>();
+
+  if (registrationIds.length > 0) {
+    const { data: students, error: studentsError } = await supabase
+      .from("students")
+      .select("id, registration_id")
+      .in("registration_id", registrationIds);
+
+    if (studentsError) {
+      // Non-fatal: the registrations list itself is still valid and
+      // useful without student links, so don't fail the whole
+      // request over this — just omit the links this time.
+      console.error("Admin registrations: student_id lookup failed:", studentsError);
+    } else {
+      studentIdByRegistrationId = new Map((students ?? []).map((s) => [s.registration_id, s.id]));
+    }
+  }
+
+  const withStudentId = (data ?? []).map((registration) => ({
+    ...registration,
+    student_id: studentIdByRegistrationId.get(registration.id) ?? null,
+  }));
+
+  return NextResponse.json({ data: withStudentId, total: count ?? 0, page, pageSize });
 }
 
 export async function PATCH(request: Request) {

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, IdCard, GraduationCap, CreditCard, ListChecks, CheckCircle2, Circle } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
 import type { ChecklistItemWithProgress } from "@/lib/supabase/types";
 
@@ -166,11 +167,13 @@ export default function AdminStudentDetailPage() {
         </Link>
 
         {notFound ? (
-          <div className="mt-6 rounded-xl2 border border-ink-900/10 bg-white px-5 py-16 text-center text-sm text-ink-700">
-            Student not found.
+          <div className="mt-6">
+            <EmptyState message="Student not found." />
           </div>
         ) : error ? (
-          <div className="mt-6 rounded-xl2 border border-ink-900/10 bg-white px-5 py-16 text-center text-sm text-ink-700">{error}</div>
+          <div className="mt-6">
+            <EmptyState message={error} />
+          </div>
         ) : student ? (
           <>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

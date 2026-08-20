@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Loader2, Plus, CalendarDays, Users } from "lucide-react";
+import { Loader2, Plus, CalendarDays, Users } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { StatCard } from "@/components/admin/StatCard";
+import { AdminNav } from "@/components/admin/AdminNav";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
 import type { Cohort } from "@/lib/supabase/types";
 
@@ -134,29 +136,11 @@ export default function AdminCohortsPage() {
             <p className="text-sm text-ink-700">Create and manage ETI cohorts.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/admin/dashboard" className="text-sm font-medium text-signal-500 hover:underline">
-              Registrations
-            </Link>
-            <Link href="/admin/payments" className="text-sm font-medium text-signal-500 hover:underline">
-              Payments
-            </Link>
-            <Link href="/admin/instructors" className="text-sm font-medium text-signal-500 hover:underline">
-              Instructors
-            </Link>
-            <Link href="/admin/resources" className="text-sm font-medium text-signal-500 hover:underline">
-              Resources
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"
-            >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
-              Sign out
-            </button>
+            <AdminNav current="/admin/cohorts" onSignOut={handleSignOut} />
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <StatCard label="Total cohorts" value={cohorts.length} />
           <StatCard label="Open for registration" value={openCount} />
         </div>
@@ -257,9 +241,7 @@ export default function AdminCohortsPage() {
               <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
             </div>
           ) : cohorts.length === 0 ? (
-            <div className="rounded-xl2 border border-ink-900/10 bg-white px-5 py-16 text-center text-sm text-ink-700">
-              No cohorts yet. Add your first cohort above.
-            </div>
+            <EmptyState icon={CalendarDays} message="No cohorts yet. Add your first cohort above." />
           ) : (
             <div className="space-y-3">
               {cohorts.map((cohort) => (

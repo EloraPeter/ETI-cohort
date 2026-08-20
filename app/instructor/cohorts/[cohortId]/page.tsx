@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Users, CalendarDays, IdCard } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
 import { ROUTES } from "@/lib/routes";
 import { formatWeeklySchedule } from "@/lib/calendar/formatSchedule";
@@ -104,8 +105,8 @@ export default function InstructorCohortRosterPage() {
         </Link>
 
         {error ? (
-          <div className="mt-6 rounded-xl2 border border-ink-900/10 bg-white px-5 py-16 text-center text-sm text-ink-700">
-            {error}
+          <div className="mt-6">
+            <EmptyState message={error} />
           </div>
         ) : (
           <>
@@ -140,24 +141,40 @@ export default function InstructorCohortRosterPage() {
               </div>
 
               {students.length === 0 ? (
-                <div className="px-5 py-16 text-center text-sm text-ink-700">No students enrolled in this cohort yet.</div>
+                <EmptyState message="No students enrolled in this cohort yet." bare />
               ) : (
                 <ul className="divide-y divide-ink-900/10">
                   {students.map((student) => (
-                    <li
-                      key={student.id}
-                      className="grid grid-cols-2 gap-2 px-5 py-4 text-sm sm:grid-cols-[1.3fr_1fr_1.3fr_1fr_0.9fr] sm:items-center sm:gap-4"
-                    >
-                      <span className="font-medium text-ink-900">{student.full_name}</span>
-                      <span className="flex items-center gap-1.5 font-mono text-xs text-ink-700">
-                        <IdCard className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                        {student.student_code}
-                      </span>
-                      <span className="truncate text-ink-700">{student.email}</span>
-                      <span className="text-ink-700">{student.phone}</span>
-                      <span>
-                        <span className={studentStatusBadge[student.status] ?? "badge-warning"}>{student.status}</span>
-                      </span>
+                    <li key={student.id} className="px-5 py-4 text-sm">
+                      {/* Mobile: labeled stacked card */}
+                      <div className="flex flex-col gap-1 sm:hidden">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-medium text-ink-900">{student.full_name}</span>
+                          <span className={studentStatusBadge[student.status] ?? "badge-warning"}>{student.status}</span>
+                        </div>
+                        <p className="truncate text-ink-700">{student.email}</p>
+                        <div className="flex items-center justify-between text-xs text-ink-700/70">
+                          <span className="flex items-center gap-1.5 font-mono">
+                            <IdCard className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                            {student.student_code}
+                          </span>
+                          <span>{student.phone}</span>
+                        </div>
+                      </div>
+
+                      {/* Desktop/tablet: column-aligned row, matches the header above */}
+                      <div className="hidden sm:grid sm:grid-cols-[1.3fr_1fr_1.3fr_1fr_0.9fr] sm:items-center sm:gap-4">
+                        <span className="font-medium text-ink-900">{student.full_name}</span>
+                        <span className="flex items-center gap-1.5 font-mono text-xs text-ink-700">
+                          <IdCard className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          {student.student_code}
+                        </span>
+                        <span className="truncate text-ink-700">{student.email}</span>
+                        <span className="text-ink-700">{student.phone}</span>
+                        <span>
+                          <span className={studentStatusBadge[student.status] ?? "badge-warning"}>{student.status}</span>
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>

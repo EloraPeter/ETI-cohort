@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LogOut, Loader2, UserCircle, Users, GraduationCap, CalendarDays, ChevronRight } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { StatCard } from "@/components/admin/StatCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
 import { ROUTES } from "@/lib/routes";
 import { formatWeeklySchedule } from "@/lib/calendar/formatSchedule";
@@ -168,8 +169,11 @@ export default function InstructorDashboardPage() {
         <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-700/70">Your cohorts</h2>
 
         {cohorts.length === 0 ? (
-          <div className="mt-4 rounded-xl2 border border-ink-900/10 bg-white px-5 py-16 text-center text-sm text-ink-700">
-            You haven't been assigned to any cohorts yet. An ETI administrator will assign you when you're ready to start.
+          <div className="mt-4">
+            <EmptyState
+              icon={GraduationCap}
+              message="You haven't been assigned to any cohorts yet. An ETI administrator will assign you when you're ready to start."
+            />
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

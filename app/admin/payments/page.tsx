@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, LogOut, Loader2, ChevronLeft, ChevronRight, FileText, Check, X, RotateCcw } from "lucide-react";
+import { Search, Loader2, ChevronLeft, ChevronRight, FileText, Check, X, RotateCcw } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { AdminNav } from "@/components/admin/AdminNav";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { createClient } from "@/lib/supabase/client";
 import type { Payment, PaymentStatus, PaymentMethod } from "@/lib/supabase/types";
 
@@ -42,6 +43,54 @@ function StatusBadge({ status }: { status: PaymentStatus }) {
     cancelled: "Cancelled",
   };
   return <span className={map[status]}>{labels[status]}</span>;
+}
+
+/** Extracted so the same approve/reject/correction buttons don't need
+ *  to be written out twice (once for the mobile card, once for the
+ *  desktop row) — purely a markup dedup, no behavior change. */
+function RowActions({
+  row,
+  actioningId,
+  onAction,
+}: {
+  row: PaymentRow;
+  actioningId: string | null;
+  onAction: (paymentId: string, action: "approve" | "reject" | "request_correction") => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {row.status !== "paid" && (
+        <button
+          onClick={() => onAction(row.id, "approve")}
+          disabled={actioningId === row.id}
+          title="Approve"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-success/15 text-success hover:bg-success/25 disabled:opacity-50"
+        >
+          <Check className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+      {row.status !== "failed" && row.status !== "paid" && (
+        <button
+          onClick={() => onAction(row.id, "reject")}
+          disabled={actioningId === row.id}
+          title="Reject"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-error/15 text-error hover:bg-error/25 disabled:opacity-50"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+      {row.method === "Bank Transfer" && row.status !== "paid" && (
+        <button
+          onClick={() => onAction(row.id, "request_correction")}
+          disabled={actioningId === row.id}
+          title="Request correction"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-warning/15 text-warning hover:bg-warning/25 disabled:opacity-50"
+        >
+          <RotateCcw className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+    </div>
+  );
 }
 
 export default function AdminPaymentsPage() {
@@ -160,25 +209,7 @@ export default function AdminPaymentsPage() {
             <p className="text-sm text-ink-700">Review, approve, and reject student payments</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/admin/dashboard" className="text-sm font-medium text-signal-500 hover:underline">
-              Registrations
-            </Link>
-            <Link href="/admin/instructors" className="text-sm font-medium text-signal-500 hover:underline">
-              Instructors
-            </Link>
-            <Link href="/admin/cohorts" className="text-sm font-medium text-signal-500 hover:underline">
-              Cohorts
-            </Link>
-            <Link href="/admin/resources" className="text-sm font-medium text-signal-500 hover:underline">
-              Resources
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"
-            >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
-              Sign out
-            </button>
+            <AdminNav current="/admin/payments" onSignOut={handleSignOut} />
           </div>
         </div>
 
@@ -242,67 +273,69 @@ export default function AdminPaymentsPage() {
               <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
             </div>
           ) : rows.length === 0 ? (
-            <div className="px-5 py-16 text-center text-sm text-ink-700">No payments match your filters.</div>
+            <EmptyState message="No payments match your filters." bare />
           ) : (
             <ul className="divide-y divide-ink-900/10">
               {rows.map((row) => (
-                <li
-                  key={row.id}
-                  className="grid grid-cols-2 gap-3 px-5 py-4 text-sm lg:grid-cols-[1.2fr_1.4fr_0.9fr_0.8fr_0.9fr_0.7fr_0.9fr_1fr] lg:items-center"
-                >
-                  <span className="font-medium text-ink-900">{row.registrations?.full_name ?? "—"}</span>
-                  <span className="truncate text-ink-700">{row.registrations?.email ?? "—"}</span>
-                  <span className="text-ink-700">{row.method}</span>
-                  <span className="text-ink-700">₦{Number(row.amount_expected).toLocaleString()}</span>
-                  <span>
-                    <StatusBadge status={row.status} />
-                  </span>
-                  <span>
-                    {row.proof_path ? (
-                      <button
-                        onClick={() => handleViewProof(row.proof_path!)}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-signal-500 hover:underline"
-                      >
-                        <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-                        View
-                      </button>
-                    ) : (
-                      <span className="text-xs text-ink-700/50">—</span>
-                    )}
-                  </span>
-                  <span className="text-xs text-ink-700/70">{new Date(row.created_at).toLocaleDateString()}</span>
-                  <span className="flex flex-wrap gap-2">
-                    {row.status !== "paid" && (
-                      <button
-                        onClick={() => handleAction(row.id, "approve")}
-                        disabled={actioningId === row.id}
-                        title="Approve"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-success/15 text-success hover:bg-success/25 disabled:opacity-50"
-                      >
-                        <Check className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    )}
-                    {row.status !== "failed" && row.status !== "paid" && (
-                      <button
-                        onClick={() => handleAction(row.id, "reject")}
-                        disabled={actioningId === row.id}
-                        title="Reject"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-error/15 text-error hover:bg-error/25 disabled:opacity-50"
-                      >
-                        <X className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    )}
-                    {row.method === "Bank Transfer" && row.status !== "paid" && (
-                      <button
-                        onClick={() => handleAction(row.id, "request_correction")}
-                        disabled={actioningId === row.id}
-                        title="Request correction"
-                        className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-warning/15 text-warning hover:bg-warning/25 disabled:opacity-50"
-                      >
-                        <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    )}
-                  </span>
+                <li key={row.id} className="px-5 py-4 text-sm">
+                  {/* Mobile: labeled stacked card */}
+                  <div className="flex flex-col gap-2 lg:hidden">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-ink-900">{row.registrations?.full_name ?? "—"}</p>
+                        <p className="truncate text-xs text-ink-700">{row.registrations?.email ?? "—"}</p>
+                      </div>
+                      <StatusBadge status={row.status} />
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-ink-700">
+                      <span>
+                        {row.method} · ₦{Number(row.amount_expected).toLocaleString()}
+                      </span>
+                      <span className="text-ink-700/70">{new Date(row.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      {row.proof_path ? (
+                        <button
+                          onClick={() => handleViewProof(row.proof_path!)}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-signal-500 hover:underline"
+                        >
+                          <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                          View proof
+                        </button>
+                      ) : (
+                        <span className="text-xs text-ink-700/50">No proof uploaded</span>
+                      )}
+                      <RowActions row={row} actioningId={actioningId} onAction={handleAction} />
+                    </div>
+                  </div>
+
+                  {/* Desktop: column-aligned row, matches the header above */}
+                  <div className="hidden lg:grid lg:grid-cols-[1.2fr_1.4fr_0.9fr_0.8fr_0.9fr_0.7fr_0.9fr_1fr] lg:items-center lg:gap-3">
+                    <span className="font-medium text-ink-900">{row.registrations?.full_name ?? "—"}</span>
+                    <span className="truncate text-ink-700">{row.registrations?.email ?? "—"}</span>
+                    <span className="text-ink-700">{row.method}</span>
+                    <span className="text-ink-700">₦{Number(row.amount_expected).toLocaleString()}</span>
+                    <span>
+                      <StatusBadge status={row.status} />
+                    </span>
+                    <span>
+                      {row.proof_path ? (
+                        <button
+                          onClick={() => handleViewProof(row.proof_path!)}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-signal-500 hover:underline"
+                        >
+                          <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+                          View
+                        </button>
+                      ) : (
+                        <span className="text-xs text-ink-700/50">—</span>
+                      )}
+                    </span>
+                    <span className="text-xs text-ink-700/70">{new Date(row.created_at).toLocaleDateString()}</span>
+                    <span className="flex flex-wrap gap-2">
+                      <RowActions row={row} actioningId={actioningId} onAction={handleAction} />
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
