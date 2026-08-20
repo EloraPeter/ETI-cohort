@@ -479,8 +479,8 @@ function InstructorRow({
                         onClick={() => (isAssigned ? handleRemoveCohort(cohort.id) : handleAssignCohort(cohort.id))}
                         disabled={isBusy}
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-60 ${isAssigned
-                            ? "border border-rose-300 text-rose-700 hover:bg-rose-50"
-                            : "bg-ink-900 text-white hover:bg-ink-800"
+                          ? "border border-rose-300 text-rose-700 hover:bg-rose-50"
+                          : "bg-ink-900 text-white hover:bg-ink-800"
                           }`}
                       >
                         {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : isAssigned ? "Remove" : "Assign"}
