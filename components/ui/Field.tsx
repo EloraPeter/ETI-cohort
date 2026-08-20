@@ -15,7 +15,7 @@ export function Field({
 }) {
   return (
     <div className={clsx("flex flex-col gap-1.5", className)}>
-      <label htmlFor={htmlFor} className="text-sm font-medium text-white/90">
+      <label htmlFor={htmlFor} className="text-sm font-medium tracking-wide text-ink-900/75">
         {label}
       </label>
       {children}
