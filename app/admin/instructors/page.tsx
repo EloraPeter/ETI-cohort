@@ -179,39 +179,43 @@ export default function AdminInstructorsPage() {
         </div>
 
         {showAddForm && (
-          <form onSubmit={handleAddInstructor} className="mt-4 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <form
+            onSubmit={handleAddInstructor}
+            className="mt-4 space-y-5 rounded-xl2 border border-ink-900/10 bg-white p-6 shadow-sm"
+          >
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
               <Field label="Full name" htmlFor="addFullName">
                 <input
                   id="addFullName"
                   required
-                  className={`${inputClass} border-ink-900/10 bg-white text-ink-900 placeholder:text-ink-700/40 focus:border-signal-500`}
+                  className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
                   value={addFullName}
                   onChange={(e) => setAddFullName(e.target.value)}
                 />
               </Field>
+
               <Field label="Email" htmlFor="addEmail">
                 <input
                   id="addEmail"
                   type="email"
                   required
-                  className={`${inputClass} border-ink-900/10 bg-white text-ink-900 placeholder:text-ink-700/40 focus:border-signal-500`}
+                  className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
                   value={addEmail}
                   onChange={(e) => setAddEmail(e.target.value)}
                 />
               </Field>
+
               <Field label="Phone (optional)" htmlFor="addPhone">
                 <input
                   id="addPhone"
-                  className={`${inputClass} border-ink-900/10 bg-white text-ink-900 placeholder:text-ink-700/40 focus:border-signal-500`}
+                  className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
                   value={addPhone}
                   onChange={(e) => setAddPhone(e.target.value)}
                 />
               </Field>
             </div>
-            <button type="submit" disabled={adding} className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
-              {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Create & send invitation"}
-            </button>
+
+            <button type="submit" disabled={adding} className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"> {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Create & send invitation"} </button>
           </form>
         )}
 
@@ -474,11 +478,10 @@ function InstructorRow({
                       <button
                         onClick={() => (isAssigned ? handleRemoveCohort(cohort.id) : handleAssignCohort(cohort.id))}
                         disabled={isBusy}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-60 ${
-                          isAssigned
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-60 ${isAssigned
                             ? "border border-rose-300 text-rose-700 hover:bg-rose-50"
                             : "bg-ink-900 text-white hover:bg-ink-800"
-                        }`}
+                          }`}
                       >
                         {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : isAssigned ? "Remove" : "Assign"}
                       </button>
