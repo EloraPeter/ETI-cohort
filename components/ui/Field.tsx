@@ -29,4 +29,4 @@ export function Field({
 }
 
 export const inputClass =
-  "w-full rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder:text-mist/60 outline-none transition-colors focus:border-signal-400 focus:bg-white/[0.06] appearance-none";
+  "w-full rounded-xl border border-white/[0.12] bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-white/35 shadow-sm shadow-black/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition-all duration-200 hover:border-white/[0.18] hover:bg-white/[0.08] focus:border-signal-400/70 focus:bg-white/[0.08] focus:ring-2 focus:ring-signal-400/10 appearance-none";
