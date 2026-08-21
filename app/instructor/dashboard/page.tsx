@@ -212,8 +212,16 @@ export default function InstructorDashboardPage() {
                     <p className="text-xs font-semibold uppercase tracking-wide text-ink-700/70">Upcoming</p>
                     <ul className="mt-2 space-y-1">
                       {t.upcoming.map((u, i) => (
-                        <li key={u.id} className="text-sm text-ink-900">
-                          {i === 0 ? "Tomorrow" : "Next"} — Class {u.class_number}: {u.title}
+                        <li key={u.id}>
+                          <Link
+                            href={`/instructor/cohorts/${cohort.id}/classes/${u.id}`}
+                            className="flex items-center justify-between gap-2 rounded-lg py-1 text-sm text-ink-900 hover:text-signal-600"
+                          >
+                            <span>
+                              {["Tomorrow", "Next", "Then"][i] ?? "Then"} — Class {u.class_number}: {u.title}
+                            </span>
+                            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-700/40" aria-hidden="true" />
+                          </Link>
                         </li>
                       ))}
                     </ul>

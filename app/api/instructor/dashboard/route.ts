@@ -125,8 +125,11 @@ async function buildTeachingSummary(
   const todayIndex = dates.indexOf(todayStr);
 
   const firstUpcomingIndex = dates.findIndex((d) => d > todayStr);
+  // Next 3 classes, not just the immediate next one — enough for an
+  // instructor to prepare a few days ahead, without turning this into
+  // a full syllabus browser.
   const upcoming =
-    firstUpcomingIndex === -1 ? [] : classes.slice(firstUpcomingIndex, firstUpcomingIndex + 2).map(toSummary);
+    firstUpcomingIndex === -1 ? [] : classes.slice(firstUpcomingIndex, firstUpcomingIndex + 3).map(toSummary);
 
   const { data: completions } = await supabase
     .from("class_completions")
