@@ -24,6 +24,7 @@ export default function InstructorProfilePage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -77,6 +78,54 @@ export default function InstructorProfilePage() {
   useEffect(() => {
     if (!checkingAuth && accessToken) load();
   }, [checkingAuth, accessToken, load]);
+
+  async function handlePhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow selecting the same file again later (e.g. after an error)
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    setError(null);
+    setSaved(false);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    const uploadRes = await fetch("/api/instructor/profile/photo", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: formData,
+    });
+
+    if (!uploadRes.ok) {
+      const body = await uploadRes.json().catch(() => null);
+      setError(body?.error ?? "Couldn't upload photo.");
+      setUploadingPhoto(false);
+      return;
+    }
+    const { url } = await uploadRes.json();
+
+    // Persist the new URL through the existing profile PATCH route —
+    // that's the single place profile-completion tracking lives, so
+    // uploading a photo correctly counts toward "profile complete"
+    // the same way typing a URL used to.
+    const saveRes = await fetch("/api/instructor/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ profilePhotoUrl: url }),
+    });
+
+    setUploadingPhoto(false);
+
+    if (saveRes.ok) {
+      const data = await saveRes.json();
+      setInstructor(data.instructor);
+      setCompletion(data.completion);
+      setProfilePhotoUrl(url);
+      setSaved(true);
+    } else {
+      setError("Photo uploaded, but couldn't save it to your profile. Try again.");
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -168,15 +217,33 @@ export default function InstructorProfilePage() {
           <Field label="Phone number" htmlFor="phone">
             <input id="phone" className={lightInputClass} value={phone} onChange={(e) => setPhone(e.target.value)} />
           </Field>
-          <Field label="Profile photo URL" htmlFor="profilePhotoUrl">
-            <input
-              id="profilePhotoUrl"
-              type="url"
-              placeholder="https://..."
-              className={lightInputClass}
-              value={profilePhotoUrl}
-              onChange={(e) => setProfilePhotoUrl(e.target.value)}
-            />
+          <Field label="Profile photo" htmlFor="profilePhotoFile">
+            <div className="flex items-center gap-4">
+              {profilePhotoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profilePhotoUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink-900/5 text-xs text-ink-700/50">
+                  No photo
+                </div>
+              )}
+              <div>
+                <input
+                  id="profilePhotoFile"
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={handlePhotoSelected}
+                />
+                <label
+                  htmlFor="profilePhotoFile"
+                  className="inline-flex cursor-pointer items-center rounded-lg border border-ink-900/10 px-3 py-2 text-sm font-medium text-ink-800 hover:bg-paper-50"
+                >
+                  {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : profilePhotoUrl ? "Replace photo" : "Upload photo"}
+                </label>
+                <p className="mt-1 text-xs text-ink-700/60">PNG, JPEG, or WebP — up to 5MB.</p>
+              </div>
+            </div>
           </Field>
           <Field label="Short bio" htmlFor="bio">
             <textarea id="bio" rows={3} className={lightInputClass} value={bio} onChange={(e) => setBio(e.target.value)} />

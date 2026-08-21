@@ -62,8 +62,21 @@ function AccountSetupForm() {
   // every link in an inbox to check it's safe, and a GET-based auto-verify
   // would burn the one-time token before the student ever sees this page.
   // Verification only happens once the student explicitly clicks below.
+  //
+  // A missing token_hash has two different causes that need different
+  // handling: (1) a genuinely stale/already-used email link — nothing
+  // to do but show "expired", or (2) an already-authenticated student
+  // revisiting this page via the dashboard's "Finish it" link (shown
+  // when profile_completed_at is null) — they don't need password
+  // recovery at all, since they already have a session; they just
+  // need the profile step below. Distinguishing these by checking for
+  // an existing session is what makes "Finish it" actually work.
   useEffect(() => {
-    if (!tokenHash) setStep("expired");
+    if (tokenHash) return;
+    supabase.auth.getSession().then(({ data }) => {
+      setStep(data.session ? "profile" : "expired");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenHash]);
 
   async function handleConfirm() {
