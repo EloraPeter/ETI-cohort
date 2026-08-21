@@ -284,12 +284,24 @@ function CohortRow({
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  function toggleExpanded() {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && curricula === null) {
+      authedFetch("/api/admin/curricula")
+        .then((res) => (res.ok ? res.json() : { curricula: [] }))
+        .then((data) => setCurricula(data.curricula));
+    }
+  }
+
   const [name, setName] = useState(cohort.name);
   const [startsOn, setStartsOn] = useState(cohort.starts_on.slice(0, 10));
   const [durationWeeks, setDurationWeeks] = useState(String(cohort.duration_weeks));
   const [feeNgn, setFeeNgn] = useState(String(cohort.fee_ngn));
   const [slotsTotal, setSlotsTotal] = useState(cohort.slots_total !== null ? String(cohort.slots_total) : "");
   const [timezone, setTimezone] = useState(cohort.timezone);
+  const [curriculumId, setCurriculumId] = useState(cohort.curriculum_id ?? "");
+  const [curricula, setCurricula] = useState<{ id: string; name: string }[] | null>(null);
 
   async function handleSave() {
     setSaving(true);
@@ -303,6 +315,7 @@ function CohortRow({
         fee_ngn: Number(feeNgn),
         slots_total: slotsTotal ? Number(slotsTotal) : null,
         timezone,
+        curriculum_id: curriculumId || null,
       }),
     });
     setSaving(false);
@@ -334,7 +347,7 @@ function CohortRow({
 
   return (
     <div className="rounded-xl2 border border-ink-900/10 bg-white">
-      <button onClick={() => setExpanded((v) => !v)} className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left">
+      <button onClick={toggleExpanded} className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left">
         <div>
           <p className="font-medium text-ink-900">{cohort.name}</p>
           <p className="mt-1 flex items-center gap-3 text-xs text-ink-700">
@@ -405,6 +418,23 @@ function CohortRow({
               <input id={`tz-${cohort.id}`} className={lightInput} value={timezone} onChange={(e) => setTimezone(e.target.value)} />
             </Field>
           </div>
+
+          <Field label="Curriculum" htmlFor={`curriculum-${cohort.id}`}>
+            <select
+              id={`curriculum-${cohort.id}`}
+              className={lightInput}
+              value={curriculumId}
+              onChange={(e) => setCurriculumId(e.target.value)}
+            >
+              <option value="">No curriculum assigned</option>
+              {(curricula ?? []).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleSave}
@@ -420,6 +450,14 @@ function CohortRow({
             >
               {cohort.is_open ? "Close registration" : "Reopen registration"}
             </button>
+            {cohort.curriculum_id && (
+              <Link
+                href={`/admin/cohorts/${cohort.id}/progress`}
+                className="text-sm font-medium text-signal-500 hover:underline"
+              >
+                View class progress
+              </Link>
+            )}
           </div>
         </div>
       )}

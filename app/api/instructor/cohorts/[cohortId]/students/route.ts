@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyInstructorRequest } from "@/lib/supabase/verifyInstructor";
+import { isInstructorAssignedToCohort } from "@/lib/instructors/cohortAccess";
 
 export async function GET(request: Request, { params }: { params: Promise<{ cohortId: string }> }) {
   const instructor = await verifyInstructorRequest(request);
@@ -16,14 +17,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ coho
   // must appear in *this* instructor's own instructor_cohorts rows.
   // A cohort that exists but isn't assigned to this instructor
   // returns an explicit 403, not a quietly empty roster.
-  const { data: assignment } = await supabase
-    .from("instructor_cohorts")
-    .select("id")
-    .eq("instructor_id", instructor.id)
-    .eq("cohort_id", cohortId)
-    .maybeSingle();
-
-  if (!assignment) {
+  if (!(await isInstructorAssignedToCohort(supabase, instructor.id, cohortId))) {
     return NextResponse.json({ error: "You are not assigned to this cohort." }, { status: 403 });
   }
 

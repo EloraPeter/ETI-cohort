@@ -40,6 +40,7 @@ export interface Cohort {
   slots_total: number | null;
   is_open: boolean;
   timezone: string;
+  curriculum_id: string | null;
   created_at: string;
   weekly_schedule: WeeklyScheduleEntry[] | null;
 }
@@ -256,9 +257,96 @@ export const INSTRUCTOR_REQUIRED_PROFILE_FIELDS = [
   "bio",
 ] as const;
 
+export type ClassCompletionStatus = "not_started" | "completed";
+
+export interface CompletionChecklistEntry {
+  key: string;
+  label: string;
+  checked: boolean;
+}
+
+export interface Curriculum {
+  [key: string]: unknown;
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CurriculumClass {
+  [key: string]: unknown;
+  id: string;
+  curriculum_id: string;
+  class_number: number;
+  week_number: number;
+  week_theme: string;
+  title: string;
+  outcome: string;
+  teaching_points: string[];
+  demo: string[];
+  practice: string[];
+  questions: string[];
+  assignment: string;
+  checkpoint: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClassResource {
+  [key: string]: unknown;
+  id: string;
+  curriculum_class_id: string;
+  label: string;
+  url: string;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ClassCompletion {
+  [key: string]: unknown;
+  id: string;
+  cohort_id: string;
+  curriculum_class_id: string;
+  instructor_id: string | null;
+  status: ClassCompletionStatus;
+  completed_at: string | null;
+  checklist: CompletionChecklistEntry[];
+  notes: string | null;
+  carry_over: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
+      curricula: {
+        Row: Curriculum;
+        Insert: Partial<Curriculum>;
+        Update: Partial<Curriculum>;
+        Relationships: [];
+      };
+      curriculum_classes: {
+        Row: CurriculumClass;
+        Insert: Partial<CurriculumClass>;
+        Update: Partial<CurriculumClass>;
+        Relationships: [];
+      };
+      class_resources: {
+        Row: ClassResource;
+        Insert: Partial<ClassResource>;
+        Update: Partial<ClassResource>;
+        Relationships: [];
+      };
+      class_completions: {
+        Row: ClassCompletion;
+        Insert: Partial<ClassCompletion>;
+        Update: Partial<ClassCompletion>;
+        Relationships: [];
+      };
       instructors: {
         Row: Instructor;
         Insert: InstructorInsert;

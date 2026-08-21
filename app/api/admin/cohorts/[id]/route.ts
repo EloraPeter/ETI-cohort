@@ -81,6 +81,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     update.is_open = result.value;
   }
 
+  // Assigns (or unassigns, via null) which curriculum this cohort is
+  // teaching. Existence-checked against curricula rather than a pure
+  // validator like the fields above, since it needs a DB lookup.
+  if (body.curriculum_id !== undefined) {
+    if (body.curriculum_id === null) {
+      update.curriculum_id = null;
+    } else if (typeof body.curriculum_id !== "string") {
+      return NextResponse.json({ error: "curriculum_id must be a string id or null." }, { status: 400 });
+    } else {
+      const supabaseCheck = createAdminClient();
+      const { data: curriculum } = await supabaseCheck.from("curricula").select("id").eq("id", body.curriculum_id).maybeSingle();
+      if (!curriculum) {
+        return NextResponse.json({ error: "Curriculum not found." }, { status: 400 });
+      }
+      update.curriculum_id = body.curriculum_id;
+    }
+  }
+
   if (Object.keys(update).length === 0) {
     return NextResponse.json({ error: "No valid fields to update." }, { status: 400 });
   }
