@@ -154,7 +154,7 @@ function AccountSetupForm() {
           {step === "confirm" && (
             <div className="mt-8 flex flex-col items-center gap-4 text-center">
               <MailCheck className="h-8 w-8 text-signal-400" aria-hidden="true" />
-              <p className="text-sm text-white/90">Click below to verify it's you and continue setting up your account.</p>
+              <p className="text-sm text-white/90">Click below to verify it&apos;s you and continue setting up your account.</p>
               <button onClick={handleConfirm} className="btn-primary w-full">
                 Continue
               </button>
@@ -169,7 +169,7 @@ function AccountSetupForm() {
 
           {step === "expired" && (
             <p className="mt-6 text-center text-sm text-mist">
-              This setup link has expired or was already used. Contact us and we'll send you a new one.
+              This setup link has expired or was already used. Contact us and we&apos;ll send you a new one.
             </p>
           )}
 
@@ -254,7 +254,7 @@ function AccountSetupForm() {
           {step === "done" && (
             <div className="mt-6 flex flex-col items-center gap-2 text-center">
               <CheckCircle2 className="h-8 w-8 text-signal-400" aria-hidden="true" />
-              <p className="text-sm text-white/90">You're all set — taking you to your dashboard.</p>
+              <p className="text-sm text-white/90">You&apos;re all set — taking you to your dashboard.</p>
             </div>
           )}
         </div>

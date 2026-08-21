@@ -2,12 +2,21 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAdminRequest } from "@/lib/supabase/verifyAdmin";
 import { finalizeEnrollment } from "@/lib/payments/finalize";
-import type { PaymentStatus, PaymentMethod } from "@/lib/supabase/types";
+import type { PaymentStatus, PaymentMethod, Payment } from "@/lib/supabase/types";
 
 const PAGE_SIZE_DEFAULT = 20;
 // Small-cohort scale: fetch matching rows, filter/paginate in memory
 // rather than relying on PostgREST embedded-resource filtering.
 const FETCH_CAP = 1000;
+
+// Matches the shape of the `select("*, registrations(...)")` join
+// above — same join, same shape already typed as PaymentRow in
+// app/admin/payments/page.tsx (that one's page-local, so this is a
+// local mirror rather than a new shared export, to keep this fix
+// minimal).
+type PaymentWithRegistration = Payment & {
+  registrations: { full_name: string; email: string; phone: string } | null;
+};
 
 export async function GET(request: Request) {
   const email = await verifyAdminRequest(request);
@@ -40,7 +49,7 @@ export async function GET(request: Request) {
 
   let rows = data ?? [];
   if (query) {
-    rows = rows.filter((row: any) => {
+    rows = rows.filter((row: PaymentWithRegistration) => {
       const reg = row.registrations;
       return (
         reg?.full_name?.toLowerCase().includes(query) ||

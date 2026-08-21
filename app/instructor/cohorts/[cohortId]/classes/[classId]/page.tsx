@@ -198,7 +198,7 @@ export default function InstructorTeachingGuidePage() {
 
             {/* Learning outcome */}
             <section className="mt-6 rounded-xl2 border border-ink-900/10 bg-white p-5">
-              <SectionHeading icon={Lightbulb}>Today's Outcome</SectionHeading>
+              <SectionHeading icon={Lightbulb}>Today&apos;s Outcome</SectionHeading>
               <p className="mt-2 text-sm text-ink-900">{classData.outcome}</p>
             </section>
 

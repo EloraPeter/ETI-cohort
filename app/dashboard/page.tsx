@@ -164,7 +164,7 @@ export default function StudentDashboardPage() {
           <div className="glass-panel mt-6 flex items-center gap-3 border-signal-400/30 p-4">
             <UserCircle className="h-5 w-5 shrink-0 text-signal-400" aria-hidden="true" />
             <p className="text-sm text-white/90">
-              Your profile isn't complete yet.{" "}
+              Your profile isn&apos;t complete yet.{" "}
               <a href={ROUTES.accountSetup} className="font-medium text-signal-400 underline">
                 Finish it
               </a>{" "}
@@ -216,7 +216,7 @@ export default function StudentDashboardPage() {
         {allReady ? (
           <div className="glass-panel mt-6 p-6 text-center sm:p-8">
             <PartyPopper className="mx-auto h-9 w-9 text-amber-400" aria-hidden="true" />
-            <h2 className="mt-3 text-xl font-semibold text-white">You're Ready for ETI Cohort!</h2>
+            <h2 className="mt-3 text-xl font-semibold text-white">You&apos;re Ready for ETI Cohort!</h2>
             <p className="mt-1 text-sm text-white/70">Your preparation is complete.</p>
             <ul className="mx-auto mt-5 flex max-w-xs flex-col gap-2 text-left text-sm text-white/90">
               {checklist.map((item) => (
@@ -228,7 +228,7 @@ export default function StudentDashboardPage() {
             </ul>
             {daysUntilStart !== null && daysUntilStart >= 0 && (
               <p className="mt-5 text-sm text-white/70">
-                We can't wait to start with you {daysUntilStart === 0 ? "today" : `in ${daysUntilStart} days`} 🚀
+                We can&apos;t wait to start with you {daysUntilStart === 0 ? "today" : `in ${daysUntilStart} days`} 🚀
               </p>
             )}
           </div>

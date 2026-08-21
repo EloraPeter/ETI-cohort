@@ -174,7 +174,7 @@ export default function InstructorDashboardPage() {
             const progressPercent = t.progress.total > 0 ? Math.round((t.progress.completed / t.progress.total) * 100) : 0;
             return (
               <div key={cohort.id} className="mt-6 rounded-xl2 border border-signal-500/30 bg-white p-6 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-signal-600">{cohort.name} · Today's Class</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-signal-600">{cohort.name} · Today&apos;s Class</p>
                 <p className="mt-2 text-sm text-ink-700">
                   Week {today.week_number} · Class {today.class_number}
                 </p>
@@ -182,7 +182,7 @@ export default function InstructorDashboardPage() {
                 <p className="text-sm text-ink-700">{today.week_theme}</p>
 
                 <div className="mt-3 rounded-lg bg-paper-50 p-3">
-                  <p className="text-xs font-medium text-ink-700/70">Today's outcome</p>
+                  <p className="text-xs font-medium text-ink-700/70">Today&apos;s outcome</p>
                   <p className="mt-1 text-sm text-ink-900">{today.outcome}</p>
                 </div>
 

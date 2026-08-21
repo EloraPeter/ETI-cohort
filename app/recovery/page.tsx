@@ -42,7 +42,7 @@ export default function RecoveryRequestPage() {
               </div>
               <h1 className="mt-5 text-xl font-semibold text-white">Check your email</h1>
               <p className="mt-3 text-sm leading-relaxed text-mist">
-                If you have an active enrollment in progress, we've sent a continuation link to your email. The
+                If you have an active enrollment in progress, we&apos;ve sent a continuation link to your email. The
                 link expires in 30 minutes.
               </p>
             </div>
@@ -50,7 +50,7 @@ export default function RecoveryRequestPage() {
             <>
               <h1 className="text-xl font-semibold text-white">Continue Your Enrollment</h1>
               <p className="mt-2 text-sm leading-relaxed text-mist">
-                Already started your registration? Enter the email address you used and we'll send you a secure
+                Already started your registration? Enter the email address you used and we&apos;ll send you a secure
                 link to continue.
               </p>
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">

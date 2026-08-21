@@ -113,7 +113,7 @@ function InstructorAccountSetupForm() {
           {step === "confirm" && (
             <div className="mt-8 flex flex-col items-center gap-4 text-center">
               <MailCheck className="h-8 w-8 text-signal-400" aria-hidden="true" />
-              <p className="text-sm text-white/90">Click below to verify it's you and continue setting up your account.</p>
+              <p className="text-sm text-white/90">Click below to verify it&apos;s you and continue setting up your account.</p>
               <button onClick={handleConfirm} className="btn-primary w-full">
                 Continue
               </button>

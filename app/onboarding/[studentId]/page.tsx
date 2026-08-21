@@ -44,7 +44,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ stu
         </h1>
         <p className="mt-4 text-base leading-relaxed text-mist">
           Your payment is confirmed and your seat in {cohort?.name ?? "the cohort"} is secured. Build the
-          skills needed to create real-world digital solutions — we're glad to have you.
+          skills needed to create real-world digital solutions — we&apos;re glad to have you.
         </p>
 
         <div className="glass-panel mt-10 grid grid-cols-1 gap-4 p-6 text-left sm:grid-cols-3 sm:p-8">

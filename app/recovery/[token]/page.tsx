@@ -104,7 +104,7 @@ export default function RecoveryTokenPage() {
                 <MailCheck className="h-6 w-6 text-white" aria-hidden="true" />
               </div>
               <h1 className="mt-5 text-xl font-semibold text-white">Continue Your Enrollment</h1>
-              <p className="mt-3 text-sm leading-relaxed text-mist">Click below to verify it's you and pick up where you left off.</p>
+              <p className="mt-3 text-sm leading-relaxed text-mist">Click below to verify it&apos;s you and pick up where you left off.</p>
               <button onClick={handleContinue} className="btn-primary mt-6 w-full">
                 Continue
               </button>
@@ -132,7 +132,7 @@ export default function RecoveryTokenPage() {
           {step === "paystack_error" && (
             <>
               <XCircle className="mx-auto h-10 w-10 text-rose-400" aria-hidden="true" />
-              <h1 className="mt-4 text-xl font-semibold text-white">Couldn't resume your payment</h1>
+              <h1 className="mt-4 text-xl font-semibold text-white">Couldn&apos;t resume your payment</h1>
               <p className="mt-3 text-sm leading-relaxed text-mist">{paystackErrorMessage}</p>
               <Link href="/recovery" className="btn-primary mt-6 inline-flex w-full justify-center">
                 Request a new link
@@ -143,7 +143,7 @@ export default function RecoveryTokenPage() {
           {step === "already_enrolled" && (
             <>
               <CheckCircle2 className="mx-auto h-10 w-10 text-signal-400" aria-hidden="true" />
-              <h1 className="mt-4 text-xl font-semibold text-white">You're already enrolled</h1>
+              <h1 className="mt-4 text-xl font-semibold text-white">You&apos;re already enrolled</h1>
               <p className="mt-3 text-sm leading-relaxed text-mist">Your payment was already confirmed — no need to pay again.</p>
               <Link href={ROUTES.login} className="btn-primary mt-6 inline-flex w-full justify-center">
                 Go to Student Portal
@@ -165,7 +165,7 @@ export default function RecoveryTokenPage() {
             <>
               <Clock className="mx-auto h-10 w-10 text-sky-400" aria-hidden="true" />
               <h1 className="mt-4 text-xl font-semibold text-white">Payment proof submitted</h1>
-              <p className="mt-3 text-sm leading-relaxed text-mist">Your payment proof is currently awaiting verification. We'll email you once it's confirmed.</p>
+              <p className="mt-3 text-sm leading-relaxed text-mist">Your payment proof is currently awaiting verification. We&apos;ll email you once it&apos;s confirmed.</p>
             </>
           )}
 
@@ -190,9 +190,9 @@ export default function RecoveryTokenPage() {
           {step === "ambiguous" && (
             <>
               <AlertTriangle className="mx-auto h-10 w-10 text-amber-400" aria-hidden="true" />
-              <h1 className="mt-4 text-xl font-semibold text-white">Something's not right</h1>
+              <h1 className="mt-4 text-xl font-semibold text-white">Something&apos;s not right</h1>
               <p className="mt-3 text-sm leading-relaxed text-mist">
-                We couldn't determine the current status of your enrollment. Please contact ETI support.
+                We couldn&apos;t determine the current status of your enrollment. Please contact ETI support.
               </p>
             </>
           )}
