@@ -167,45 +167,58 @@ export default function InstructorDashboardPage() {
         </div>
 
         {cohorts
-          .filter((c) => c.teaching?.today)
+          .filter((c) => c.teaching)
           .map((cohort) => {
             const t = cohort.teaching!;
-            const today = t.today!;
+            const today = t.today;
             const progressPercent = t.progress.total > 0 ? Math.round((t.progress.completed / t.progress.total) * 100) : 0;
             return (
               <div key={cohort.id} className="mt-6 rounded-xl2 border border-signal-500/30 bg-white p-6 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-signal-600">{cohort.name} · Today&apos;s Class</p>
-                <p className="mt-2 text-sm text-ink-700">
-                  Week {today.week_number} · Class {today.class_number}
-                </p>
-                <h2 className="mt-1 font-display text-2xl font-semibold text-ink-900">{today.title}</h2>
-                <p className="text-sm text-ink-700">{today.week_theme}</p>
+                {today ? (
+                  <>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-signal-600">{cohort.name} · Today&apos;s Class</p>
+                    <p className="mt-2 text-sm text-ink-700">
+                      Week {today.week_number} · Class {today.class_number}
+                    </p>
+                    <h2 className="mt-1 font-display text-2xl font-semibold text-ink-900">{today.title}</h2>
+                    <p className="text-sm text-ink-700">{today.week_theme}</p>
 
-                <div className="mt-3 rounded-lg bg-paper-50 p-3">
-                  <p className="text-xs font-medium text-ink-700/70">Today&apos;s outcome</p>
-                  <p className="mt-1 text-sm text-ink-900">{today.outcome}</p>
-                </div>
+                    <div className="mt-3 rounded-lg bg-paper-50 p-3">
+                      <p className="text-xs font-medium text-ink-700/70">Today&apos;s outcome</p>
+                      <p className="mt-1 text-sm text-ink-900">{today.outcome}</p>
+                    </div>
 
-                <Link
-                  href={`/instructor/cohorts/${cohort.id}/classes/${today.id}`}
-                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-ink-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-ink-800"
-                >
-                  <BookOpen className="h-4 w-4" aria-hidden="true" />
-                  Open Teaching Guide
-                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
+                    <Link
+                      href={`/instructor/cohorts/${cohort.id}/classes/${today.id}`}
+                      className="mt-4 inline-flex items-center gap-2 rounded-lg bg-ink-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-ink-800"
+                    >
+                      <BookOpen className="h-4 w-4" aria-hidden="true" />
+                      Open Teaching Guide
+                      <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-signal-600">{cohort.name}</p>
+                    <p className="mt-2 text-sm text-ink-700">
+                      {t.upcoming.length > 0 ? "No class today — see what's coming up below." : "No classes scheduled."}
+                    </p>
+                  </>
+                )}
 
-                <div className="mt-5 border-t border-ink-900/10 pt-4">
-                  <div className="flex items-center justify-between text-xs text-ink-700/70">
-                    <span>Progress</span>
-                    <span>
-                      {t.progress.completed} / {t.progress.total} classes completed
-                    </span>
+                {t.progress.total > 0 && (
+                  <div className="mt-5 border-t border-ink-900/10 pt-4">
+                    <div className="flex items-center justify-between text-xs text-ink-700/70">
+                      <span>Progress</span>
+                      <span>
+                        {t.progress.completed} / {t.progress.total} classes completed
+                      </span>
+                    </div>
+                    <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-ink-900/10">
+                      <div className="h-full rounded-full bg-signal-500" style={{ width: `${progressPercent}%` }} />
+                    </div>
                   </div>
-                  <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-ink-900/10">
-                    <div className="h-full rounded-full bg-signal-500" style={{ width: `${progressPercent}%` }} />
-                  </div>
-                </div>
+                )}
 
                 {t.upcoming.length > 0 && (
                   <div className="mt-5 border-t border-ink-900/10 pt-4">
@@ -218,7 +231,10 @@ export default function InstructorDashboardPage() {
                             className="flex items-center justify-between gap-2 rounded-lg py-1 text-sm text-ink-900 hover:text-signal-600"
                           >
                             <span>
-                              {["Tomorrow", "Next", "Then"][i] ?? "Then"} — Class {u.class_number}: {u.title}
+                              {today
+                                ? (["Tomorrow", "Next", "Then"][i] ?? "Then")
+                                : (["Next", "Then", "Then"][i] ?? "Then")}{" "}
+                              — Class {u.class_number}: {u.title}
                             </span>
                             <ChevronRight className="h-3.5 w-3.5 shrink-0 text-ink-700/40" aria-hidden="true" />
                           </Link>
@@ -269,11 +285,6 @@ export default function InstructorDashboardPage() {
                     </p>
                     {cohort.weekly_schedule && cohort.weekly_schedule.length > 0 && (
                       <p className="mt-1 text-xs text-ink-700">{formatWeeklySchedule(cohort.weekly_schedule).join(" · ")}</p>
-                    )}
-                    {cohort.teaching && !cohort.teaching.today && cohort.teaching.upcoming[0] && (
-                      <p className="mt-1 text-xs text-ink-700">
-                        Next class: Class {cohort.teaching.upcoming[0].class_number} — {cohort.teaching.upcoming[0].title}
-                      </p>
                     )}
                   </div>
                   <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-ink-700/50" aria-hidden="true" />
