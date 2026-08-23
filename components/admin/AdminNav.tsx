@@ -2,15 +2,7 @@
 
 import Link from "next/link";
 import { LogOut } from "lucide-react";
-
-const ADMIN_NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Registrations" },
-  { href: "/admin/payments", label: "Payments" },
-  { href: "/admin/instructors", label: "Instructors" },
-  { href: "/admin/cohorts", label: "Cohorts" },
-  { href: "/admin/curriculum", label: "Curriculum" },
-  { href: "/admin/resources", label: "Resources" },
-] as const;
+import { ADMIN_NAV_ITEMS } from "@/lib/admin/navItems";
 
 /**
  * Shared admin section nav + sign-out control. Extracted from the
