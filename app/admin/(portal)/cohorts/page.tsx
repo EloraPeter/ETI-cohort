@@ -1,15 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Plus, CalendarDays, Users } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { StatCard } from "@/components/admin/StatCard";
-import { AdminNav } from "@/components/admin/AdminNav";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { Cohort } from "@/lib/supabase/types";
 
 // Session-gated and data-driven — never statically prerendered.
@@ -27,11 +25,7 @@ const emptyForm = {
 };
 
 export default function AdminCohortsPage() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const { authedFetch } = useAdminAuth();
 
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,30 +36,9 @@ export default function AdminCohortsPage() {
   const [form, setForm] = useState(emptyForm);
   const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/admin");
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
-  const authedFetch = useCallback(
-    (url: string, init?: RequestInit) =>
-      fetch(url, { ...init, headers: { ...init?.headers, Authorization: `Bearer ${accessToken}` } }),
-    [accessToken]
-  );
-
   const load = useCallback(async () => {
     setLoading(true);
     const res = await authedFetch("/api/admin/cohorts");
-    if (res.status === 401) {
-      router.replace("/admin");
-      return;
-    }
     if (res.ok) {
       const data = await res.json();
       setCohorts(data.cohorts);
@@ -73,16 +46,11 @@ export default function AdminCohortsPage() {
       setError("Couldn't load cohorts.");
     }
     setLoading(false);
-  }, [authedFetch, router]);
+  }, [authedFetch]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.replace("/admin");
-  }
+    load();
+  }, [load]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -119,152 +87,136 @@ export default function AdminCohortsPage() {
 
   const openCount = cohorts.filter((c) => c.is_open).length;
 
-  if (checkingAuth) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
-        <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-5xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-semibold">Cohorts</h1>
-            <p className="text-sm text-ink-700">Create and manage ETI cohorts.</p>
+    <Container className="max-w-5xl">
+      <PageHeader title="Cohorts" subtitle="Create and manage ETI cohorts." />
+
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <StatCard label="Total cohorts" value={cohorts.length} />
+        <StatCard label="Open for registration" value={openCount} />
+      </div>
+
+      {message && (
+        <p className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>
+      )}
+      {error && <p className="mt-4 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+
+      <p className="mt-4 text-xs text-ink-700/70">
+        Weekly class schedule and onboarding resources are managed on the{" "}
+        <Link href="/admin/resources" className="font-medium text-signal-500 hover:underline">
+          Resources
+        </Link>{" "}
+        page.
+      </p>
+
+      <div className="mt-4 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700/70">All cohorts</h2>
+        <button
+          onClick={() => setShowAddForm((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Add cohort
+        </button>
+      </div>
+
+      {showAddForm && (
+        <form onSubmit={handleCreate} className="mt-4 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Field label="Name" htmlFor="name">
+              <input id="name" required className={lightInput} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </Field>
+            <Field label="Start date" htmlFor="starts_on">
+              <input
+                id="starts_on"
+                type="date"
+                required
+                className={lightInput}
+                value={form.starts_on}
+                onChange={(e) => setForm({ ...form, starts_on: e.target.value })}
+              />
+            </Field>
+            <Field label="Duration (weeks)" htmlFor="duration_weeks">
+              <input
+                id="duration_weeks"
+                type="number"
+                min={1}
+                max={52}
+                required
+                className={lightInput}
+                value={form.duration_weeks}
+                onChange={(e) => setForm({ ...form, duration_weeks: e.target.value })}
+              />
+            </Field>
+            <Field label="Fee (₦)" htmlFor="fee_ngn">
+              <input
+                id="fee_ngn"
+                type="number"
+                min={0}
+                step="0.01"
+                required
+                className={lightInput}
+                value={form.fee_ngn}
+                onChange={(e) => setForm({ ...form, fee_ngn: e.target.value })}
+              />
+            </Field>
+            <Field label="Slots (blank = uncapped)" htmlFor="slots_total">
+              <input
+                id="slots_total"
+                type="number"
+                min={1}
+                className={lightInput}
+                value={form.slots_total}
+                onChange={(e) => setForm({ ...form, slots_total: e.target.value })}
+              />
+            </Field>
+            <Field label="Timezone" htmlFor="timezone">
+              <input
+                id="timezone"
+                required
+                className={lightInput}
+                value={form.timezone}
+                onChange={(e) => setForm({ ...form, timezone: e.target.value })}
+              />
+            </Field>
           </div>
-          <div className="flex items-center gap-3">
-            <AdminNav current="/admin/cohorts" onSignOut={handleSignOut} />
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <StatCard label="Total cohorts" value={cohorts.length} />
-          <StatCard label="Open for registration" value={openCount} />
-        </div>
-
-        {message && (
-          <p className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>
-        )}
-        {error && <p className="mt-4 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
-
-        <p className="mt-4 text-xs text-ink-700/70">
-          Weekly class schedule and onboarding resources are managed on the{" "}
-          <Link href="/admin/resources" className="font-medium text-signal-500 hover:underline">
-            Resources
-          </Link>{" "}
-          page.
-        </p>
-
-        <div className="mt-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700/70">All cohorts</h2>
-          <button
-            onClick={() => setShowAddForm((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add cohort
+          <button type="submit" disabled={creating} className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+            {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Create cohort"}
           </button>
-        </div>
+        </form>
+      )}
 
-        {showAddForm && (
-          <form onSubmit={handleCreate} className="mt-4 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Field label="Name" htmlFor="name">
-                <input id="name" required className={lightInput} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              </Field>
-              <Field label="Start date" htmlFor="starts_on">
-                <input
-                  id="starts_on"
-                  type="date"
-                  required
-                  className={lightInput}
-                  value={form.starts_on}
-                  onChange={(e) => setForm({ ...form, starts_on: e.target.value })}
-                />
-              </Field>
-              <Field label="Duration (weeks)" htmlFor="duration_weeks">
-                <input
-                  id="duration_weeks"
-                  type="number"
-                  min={1}
-                  max={52}
-                  required
-                  className={lightInput}
-                  value={form.duration_weeks}
-                  onChange={(e) => setForm({ ...form, duration_weeks: e.target.value })}
-                />
-              </Field>
-              <Field label="Fee (₦)" htmlFor="fee_ngn">
-                <input
-                  id="fee_ngn"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  required
-                  className={lightInput}
-                  value={form.fee_ngn}
-                  onChange={(e) => setForm({ ...form, fee_ngn: e.target.value })}
-                />
-              </Field>
-              <Field label="Slots (blank = uncapped)" htmlFor="slots_total">
-                <input
-                  id="slots_total"
-                  type="number"
-                  min={1}
-                  className={lightInput}
-                  value={form.slots_total}
-                  onChange={(e) => setForm({ ...form, slots_total: e.target.value })}
-                />
-              </Field>
-              <Field label="Timezone" htmlFor="timezone">
-                <input
-                  id="timezone"
-                  required
-                  className={lightInput}
-                  value={form.timezone}
-                  onChange={(e) => setForm({ ...form, timezone: e.target.value })}
-                />
-              </Field>
-            </div>
-            <button type="submit" disabled={creating} className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
-              {creating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Create cohort"}
-            </button>
-          </form>
+      <div className="mt-4">
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
+          </div>
+        ) : cohorts.length === 0 ? (
+          <div className="rounded-xl2 border border-ink-900/10 bg-white px-5 py-16 text-center text-sm text-ink-700">
+            No cohorts yet. Add your first cohort above.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {cohorts.map((cohort) => (
+              <CohortRow
+                key={cohort.id}
+                cohort={cohort}
+                authedFetch={authedFetch}
+                onChanged={load}
+                onMessage={(m) => {
+                  setMessage(m);
+                  setError(null);
+                }}
+                onError={(e) => {
+                  setError(e);
+                  setMessage(null);
+                }}
+              />
+            ))}
+          </div>
         )}
-
-        <div className="mt-4">
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
-            </div>
-          ) : cohorts.length === 0 ? (
-            <EmptyState icon={CalendarDays} message="No cohorts yet. Add your first cohort above." />
-          ) : (
-            <div className="space-y-3">
-              {cohorts.map((cohort) => (
-                <CohortRow
-                  key={cohort.id}
-                  cohort={cohort}
-                  authedFetch={authedFetch}
-                  onChanged={load}
-                  onMessage={(m) => {
-                    setMessage(m);
-                    setError(null);
-                  }}
-                  onError={(e) => {
-                    setError(e);
-                    setMessage(null);
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </Container>
-    </main>
+      </div>
+    </Container>
   );
 }
 

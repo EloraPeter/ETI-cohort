@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, Plus, GraduationCap, Mail, RotateCcw } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { StatCard } from "@/components/admin/StatCard";
-import { AdminNav } from "@/components/admin/AdminNav";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { Instructor, InstructorStatus } from "@/lib/supabase/types";
 
 // Session-gated and data-driven — never statically prerendered.
@@ -28,11 +27,7 @@ const statusBadgeClass: Record<InstructorStatus, string> = {
 };
 
 export default function AdminInstructorsPage() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const { authedFetch } = useAdminAuth();
 
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [cohorts, setCohorts] = useState<CohortOption[]>([]);
@@ -46,33 +41,12 @@ export default function AdminInstructorsPage() {
   const [addPhone, setAddPhone] = useState("");
   const [adding, setAdding] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/admin");
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
-  const authedFetch = useCallback(
-    (url: string, init?: RequestInit) =>
-      fetch(url, { ...init, headers: { ...init?.headers, Authorization: `Bearer ${accessToken}` } }),
-    [accessToken]
-  );
-
   const load = useCallback(async () => {
     setLoading(true);
     const [instructorsRes, cohortsRes] = await Promise.all([
       authedFetch("/api/admin/instructors"),
       authedFetch("/api/admin/cohorts"),
     ]);
-    if (instructorsRes.status === 401 || cohortsRes.status === 401) {
-      router.replace("/admin");
-      return;
-    }
     if (instructorsRes.ok) {
       const data = await instructorsRes.json();
       setInstructors(data.instructors);
@@ -84,16 +58,11 @@ export default function AdminInstructorsPage() {
       setCohorts(data.cohorts);
     }
     setLoading(false);
-  }, [authedFetch, router]);
+  }, [authedFetch]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.replace("/admin");
-  }
+    load();
+  }, [load]);
 
   async function handleAddInstructor(e: React.FormEvent) {
     e.preventDefault();
@@ -132,124 +101,108 @@ export default function AdminInstructorsPage() {
     load();
   }
 
-  if (checkingAuth) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
-        <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
-    );
-  }
-
   const activeCount = instructors.filter((i) => i.status === "active").length;
   const invitedCount = instructors.filter((i) => i.status === "invited").length;
 
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-5xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-semibold">Instructors</h1>
-            <p className="text-sm text-ink-700">Manage instructor accounts and cohort assignments.</p>
+    <Container className="max-w-5xl">
+      <PageHeader title="Instructors" subtitle="Manage instructor accounts and cohort assignments." />
+
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard label="Total instructors" value={instructors.length} />
+        <StatCard label="Active" value={activeCount} />
+        <StatCard label="Invited" value={invitedCount} />
+      </div>
+
+      {message && (
+        <p className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>
+      )}
+      {error && <p className="mt-4 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+
+      <div className="mt-6 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700/70">All instructors</h2>
+        <button
+          onClick={() => setShowAddForm((v) => !v)}
+          className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          Add instructor
+        </button>
+      </div>
+
+      {showAddForm && (
+        <form
+          onSubmit={handleAddInstructor}
+          className="mt-4 space-y-5 rounded-xl2 border border-ink-900/10 bg-white p-6 shadow-sm"
+        >
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <Field label="Full name" htmlFor="addFullName">
+              <input
+                id="addFullName"
+                required
+                className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
+                value={addFullName}
+                onChange={(e) => setAddFullName(e.target.value)}
+              />
+            </Field>
+
+            <Field label="Email" htmlFor="addEmail">
+              <input
+                id="addEmail"
+                type="email"
+                required
+                className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
+                value={addEmail}
+                onChange={(e) => setAddEmail(e.target.value)}
+              />
+            </Field>
+
+            <Field label="Phone (optional)" htmlFor="addPhone">
+              <input
+                id="addPhone"
+                className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
+                value={addPhone}
+                onChange={(e) => setAddPhone(e.target.value)}
+              />
+            </Field>
           </div>
-          <div className="flex items-center gap-3">
-            <AdminNav current="/admin/instructors" onSignOut={handleSignOut} />
-          </div>
-        </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <StatCard label="Total instructors" value={instructors.length} />
-          <StatCard label="Active" value={activeCount} />
-          <StatCard label="Invited" value={invitedCount} />
-        </div>
-
-        {message && (
-          <p className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>
-        )}
-        {error && <p className="mt-4 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
-
-        <div className="mt-6 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700/70">All instructors</h2>
-          <button
-            onClick={() => setShowAddForm((v) => !v)}
-            className="inline-flex items-center gap-2 rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add instructor
+          <button type="submit" disabled={adding} className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+            {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Create & send invitation"}
           </button>
-        </div>
+        </form>
+      )}
 
-        {showAddForm && (
-          <form
-            onSubmit={handleAddInstructor}
-            className="mt-4 space-y-5 rounded-xl2 border border-ink-900/10 bg-white p-6 shadow-sm"
-          >
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-              <Field label="Full name" htmlFor="addFullName">
-                <input
-                  id="addFullName"
-                  required
-                  className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
-                  value={addFullName}
-                  onChange={(e) => setAddFullName(e.target.value)}
-                />
-              </Field>
-
-              <Field label="Email" htmlFor="addEmail">
-                <input
-                  id="addEmail"
-                  type="email"
-                  required
-                  className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
-                  value={addEmail}
-                  onChange={(e) => setAddEmail(e.target.value)}
-                />
-              </Field>
-
-              <Field label="Phone (optional)" htmlFor="addPhone">
-                <input
-                  id="addPhone"
-                  className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
-                  value={addPhone}
-                  onChange={(e) => setAddPhone(e.target.value)}
-                />
-              </Field>
-            </div>
-
-            <button type="submit" disabled={adding} className="rounded-lg bg-ink-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"> {adding ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Create & send invitation"} </button>
-          </form>
+      <div className="mt-4">
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
+          </div>
+        ) : instructors.length === 0 ? (
+          <EmptyState icon={GraduationCap} message="No instructors yet. Add your first instructor above." />
+        ) : (
+          <div className="space-y-3">
+            {instructors.map((instructor) => (
+              <InstructorRow
+                key={instructor.id}
+                instructor={instructor}
+                cohorts={cohorts}
+                authedFetch={authedFetch}
+                onChanged={load}
+                onMessage={(m) => {
+                  setMessage(m);
+                  setError(null);
+                }}
+                onError={(e) => {
+                  setError(e);
+                  setMessage(null);
+                }}
+              />
+            ))}
+          </div>
         )}
-
-        <div className="mt-4">
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
-            </div>
-          ) : instructors.length === 0 ? (
-            <EmptyState icon={GraduationCap} message="No instructors yet. Add your first instructor above." />
-          ) : (
-            <div className="space-y-3">
-              {instructors.map((instructor) => (
-                <InstructorRow
-                  key={instructor.id}
-                  instructor={instructor}
-                  cohorts={cohorts}
-                  authedFetch={authedFetch}
-                  onChanged={load}
-                  onMessage={(m) => {
-                    setMessage(m);
-                    setError(null);
-                  }}
-                  onError={(e) => {
-                    setError(e);
-                    setMessage(null);
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </Container>
-    </main>
+      </div>
+    </Container>
   );
 }
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Loader2,
   FileText,
@@ -16,8 +15,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
-import { AdminNav } from "@/components/admin/AdminNav";
-import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import { MANAGED_RESOURCE_ITEMS } from "@/lib/checklist/managedResources";
 import type { WeeklyScheduleEntry } from "@/lib/supabase/types";
 
@@ -55,11 +54,7 @@ const DAY_OPTIONS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Fr
 const TIMEZONE_OPTIONS = ["Africa/Lagos", "Africa/Cairo", "Africa/Nairobi", "Europe/London", "America/New_York", "America/Los_Angeles", "Asia/Dubai"];
 
 export default function AdminResourcesPage() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const { authedFetch } = useAdminAuth();
 
   const [cohorts, setCohorts] = useState<CohortOption[]>([]);
   const [cohortId, setCohortId] = useState<string>("");
@@ -74,35 +69,14 @@ export default function AdminResourcesPage() {
   const [timezoneDraft, setTimezoneDraft] = useState("Africa/Lagos");
   const [savingSchedule, setSavingSchedule] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/admin");
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
-  const authedFetch = useCallback(
-    (url: string, init?: RequestInit) =>
-      fetch(url, { ...init, headers: { ...init?.headers, Authorization: `Bearer ${accessToken}` } }),
-    [accessToken]
-  );
-
   const loadCohorts = useCallback(async () => {
     const res = await authedFetch("/api/admin/cohorts");
-    if (res.status === 401) {
-      router.replace("/admin");
-      return;
-    }
     if (res.ok) {
       const data = await res.json();
       setCohorts(data.cohorts);
       if (data.cohorts.length > 0) setCohortId((prev) => prev || data.cohorts[0].id);
     }
-  }, [authedFetch, router]);
+  }, [authedFetch]);
 
   const loadResources = useCallback(
     async (id: string) => {
@@ -119,8 +93,8 @@ export default function AdminResourcesPage() {
   );
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) loadCohorts();
-  }, [checkingAuth, accessToken, loadCohorts]);
+    loadCohorts();
+  }, [loadCohorts]);
 
   useEffect(() => {
     if (cohortId) loadResources(cohortId);
@@ -183,42 +157,20 @@ export default function AdminResourcesPage() {
     setSavingSchedule(false);
   }
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.replace("/admin");
-  }
-
-  if (checkingAuth) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
-        <Loader2 className="h-6 w-6 animate-spin text-ink-700" aria-hidden="true" />
-      </main>
-    );
-  }
-
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-4xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-2xl font-semibold">Onboarding & Cohort Operations</h1>
-            <p className="text-sm text-ink-700">Manage the class schedule and onboarding resources per cohort</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <AdminNav current="/admin/resources" onSignOut={handleSignOut} />
-          </div>
-        </div>
+    <Container className="max-w-4xl">
+      <PageHeader title="Onboarding & Cohort Operations" subtitle="Manage the class schedule and onboarding resources per cohort" />
 
-        <div className="mt-6 flex items-center gap-3">
-          <label htmlFor="cohort-select" className="text-sm font-medium text-ink-700">
-            Cohort:
-          </label>
-          <select
-            id="cohort-select"
-            value={cohortId}
-            onChange={(e) => setCohortId(e.target.value)}
-            className="rounded-lg border border-ink-900/10 bg-white px-3 py-2 text-sm text-ink-900 outline-none focus:border-signal-500"
-          >
+      <div className="mt-6 flex items-center gap-3">
+        <label htmlFor="cohort-select" className="text-sm font-medium text-ink-700">
+          Cohort:
+        </label>
+        <select
+          id="cohort-select"
+          value={cohortId}
+          onChange={(e) => setCohortId(e.target.value)}
+          className="rounded-lg border border-ink-900/10 bg-white px-3 py-2 text-sm text-ink-900 outline-none focus:border-signal-500"
+        >
             {cohorts.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name} — {new Date(c.starts_on).toLocaleDateString("en-NG", { month: "long", year: "numeric" })}
@@ -342,7 +294,6 @@ export default function AdminResourcesPage() {
           )}
         </div>
       </Container>
-    </main>
   );
 }
 

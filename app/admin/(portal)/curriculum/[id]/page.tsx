@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
-import { createClient } from "@/lib/supabase/client";
+import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { CurriculumClass, ClassResource, Curriculum } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -36,111 +36,85 @@ function linesToArray(text: string): string[] {
 }
 
 export default function AdminCurriculumDetailPage() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
-  const supabase = createClient();
+  const { authedFetch } = useAdminAuth();
 
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
   const [curriculum, setCurriculum] = useState<Curriculum | null>(null);
   const [classes, setClasses] = useState<CurriculumClass[]>([]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/admin");
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
-  const authedFetch = useCallback(
-    (url: string, init?: RequestInit) =>
-      fetch(url, { ...init, headers: { ...init?.headers, Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" } }),
-    [accessToken]
-  );
-
   const load = useCallback(async () => {
     setLoading(true);
     const res = await authedFetch(`/api/admin/curricula/${params.id}`);
-    if (res.status === 401) {
-      router.replace("/admin");
-      return;
-    }
     if (res.ok) {
       const data = await res.json();
       setCurriculum(data.curriculum);
       setClasses(data.classes);
     }
     setLoading(false);
-  }, [authedFetch, params.id, router]);
+  }, [authedFetch, params.id]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
+    load();
+  }, [load]);
 
   const weeks = Array.from(new Set(classes.map((c) => c.week_number))).sort((a, b) => a - b);
 
-  if (checkingAuth || loading) {
+  if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
-        <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
+      <div className="flex justify-center py-16">
+        <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-3xl">
-        <Link href="/admin/curriculum" className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          All curricula
-        </Link>
+    <Container className="max-w-3xl">
+      <Link href="/admin/curriculum" className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        All curricula
+      </Link>
 
-        {curriculum && (
-          <div className="mt-4">
-            <h1 className="font-display text-2xl font-semibold">{curriculum.name}</h1>
-            <p className="mt-1 text-sm text-ink-700">{classes.length} classes across {weeks.length} weeks.</p>
-          </div>
-        )}
-
-        {message && (
-          <p className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>
-        )}
-
-        <div className="mt-6 space-y-6">
-          {weeks.map((weekNumber) => {
-            const weekClasses = classes.filter((c) => c.week_number === weekNumber);
-            return (
-              <div key={weekNumber}>
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700/70">
-                  Week {weekNumber} — {weekClasses[0]?.week_theme}
-                </h2>
-                <div className="mt-2 space-y-2">
-                  {weekClasses.map((cls) => (
-                    <ClassRow
-                      key={cls.id}
-                      curriculumId={params.id}
-                      classItem={cls}
-                      isFirst={cls.class_number === classes[0]?.class_number}
-                      isLast={cls.class_number === classes[classes.length - 1]?.class_number}
-                      authedFetch={authedFetch}
-                      onReordered={(updated) => setClasses(updated)}
-                      onMessage={setMessage}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+      {curriculum && (
+        <div className="mt-4">
+          <h1 className="font-display text-2xl font-semibold text-ink-900">{curriculum.name}</h1>
+          <p className="mt-1 text-sm text-ink-700">{classes.length} classes across {weeks.length} weeks.</p>
         </div>
-      </Container>
-    </main>
+      )}
+
+      {message && (
+        <p className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</p>
+      )}
+
+      <div className="mt-6 space-y-6">
+        {weeks.map((weekNumber) => {
+          const weekClasses = classes.filter((c) => c.week_number === weekNumber);
+          return (
+            <div key={weekNumber}>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700/70">
+                Week {weekNumber} — {weekClasses[0]?.week_theme}
+              </h2>
+              <div className="mt-2 space-y-2">
+                {weekClasses.map((cls) => (
+                  <ClassRow
+                    key={cls.id}
+                    curriculumId={params.id}
+                    classItem={cls}
+                    isFirst={cls.class_number === classes[0]?.class_number}
+                    isLast={cls.class_number === classes[classes.length - 1]?.class_number}
+                    authedFetch={authedFetch}
+                    onReordered={(updated) => setClasses(updated)}
+                    onMessage={setMessage}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Container>
   );
 }
 
@@ -259,10 +233,20 @@ function ClassRow({
     <div className="rounded-xl2 border border-ink-900/10 bg-white">
       <div className="flex items-center gap-2 px-4 py-3">
         <div className="flex flex-col">
-          <button onClick={() => handleReorder("move_up")} disabled={isFirst || saving} className="text-ink-700/50 hover:text-ink-900 disabled:opacity-30">
+          <button
+            onClick={() => handleReorder("move_up")}
+            disabled={isFirst || saving}
+            aria-label="Move class up"
+            className="text-ink-700/50 hover:text-ink-900 disabled:opacity-30"
+          >
             <ChevronUp className="h-4 w-4" aria-hidden="true" />
           </button>
-          <button onClick={() => handleReorder("move_down")} disabled={isLast || saving} className="text-ink-700/50 hover:text-ink-900 disabled:opacity-30">
+          <button
+            onClick={() => handleReorder("move_down")}
+            disabled={isLast || saving}
+            aria-label="Move class down"
+            className="text-ink-700/50 hover:text-ink-900 disabled:opacity-30"
+          >
             <ChevronDown className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>

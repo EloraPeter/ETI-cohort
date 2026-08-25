@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, IdCard, GraduationCap, CreditCard, ListChecks, CheckCircle2, Circle } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { createClient } from "@/lib/supabase/client";
+import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { ChecklistItemWithProgress } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -88,12 +88,9 @@ function countChecklist(items: ChecklistItemWithProgress[]): { total: number; do
 }
 
 export default function AdminStudentDetailPage() {
-  const router = useRouter();
   const params = useParams<{ id: string }>();
-  const supabase = createClient();
+  const { authedFetch } = useAdminAuth();
 
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,28 +101,11 @@ export default function AdminStudentDetailPage() {
   const [payment, setPayment] = useState<PaymentSummary | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItemWithProgress[]>([]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/admin");
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     setNotFound(false);
-    const res = await fetch(`/api/admin/students/${params.id}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (res.status === 401) {
-      router.replace("/admin");
-      return;
-    }
+    const res = await authedFetch(`/api/admin/students/${params.id}`);
     if (res.status === 404) {
       setNotFound(true);
       setLoading(false);
@@ -142,32 +122,31 @@ export default function AdminStudentDetailPage() {
       setError("Couldn't load this student. Try refreshing.");
     }
     setLoading(false);
-  }, [accessToken, params.id, router]);
+  }, [authedFetch, params.id]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
+    load();
+  }, [load]);
 
-  if (checkingAuth || loading) {
+  if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
-        <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
+      <div className="flex justify-center py-16">
+        <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
+      </div>
     );
   }
 
   const checklistCount = countChecklist(checklist);
 
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-3xl">
-        <Link href="/admin/dashboard" className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to registrations
-        </Link>
+    <Container className="max-w-3xl">
+      <Link href="/admin/dashboard" className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        Back to registrations
+      </Link>
 
-        {notFound ? (
-          <div className="mt-6">
+      {notFound ? (
+        <div className="mt-6">
             <EmptyState message="Student not found." />
           </div>
         ) : error ? (
@@ -292,7 +271,6 @@ export default function AdminStudentDetailPage() {
           </>
         ) : null}
       </Container>
-    </main>
   );
 }
 
