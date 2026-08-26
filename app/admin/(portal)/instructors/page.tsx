@@ -133,10 +133,10 @@ export default function AdminInstructorsPage() {
       {showAddForm && (
         <form
           onSubmit={handleAddInstructor}
-          className="mt-4 space-y-5 rounded-xl2 border border-ink-900/10 bg-white p-6 shadow-sm"
+          className="mt-4 space-y-5 rounded-xl2 border border-ink-900/10 bg-white p-6 shadow-sm text-ink-900/75"
         >
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <Field label="Full name" htmlFor="addFullName">
+            <Field label="Full name" htmlFor="addFullName" className="text-ink-900/75">
               <input
                 id="addFullName"
                 required
@@ -146,7 +146,7 @@ export default function AdminInstructorsPage() {
               />
             </Field>
 
-            <Field label="Email" htmlFor="addEmail">
+            <Field label="Email" htmlFor="addEmail" className="text-ink-900/75">
               <input
                 id="addEmail"
                 type="email"
@@ -157,7 +157,7 @@ export default function AdminInstructorsPage() {
               />
             </Field>
 
-            <Field label="Phone (optional)" htmlFor="addPhone">
+            <Field label="Phone (optional)" htmlFor="addPhone" className="text-ink-900/75">
               <input
                 id="addPhone"
                 className={`${inputClass} border-ink-900/10 bg-ink-50/50 text-ink-900 placeholder:text-ink-700/40 hover:border-ink-900/20 hover:bg-ink-50 focus:border-signal-500 focus:bg-white focus:ring-signal-500/10`}
@@ -350,7 +350,7 @@ function InstructorRow({
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-700/70">Details</p>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Field label="Full name" htmlFor={`fullName-${instructor.id}`}>
+              <Field label="Full name" htmlFor={`fullName-${instructor.id}`} className="text-ink-900/75">
                 <input
                   id={`fullName-${instructor.id}`}
                   className={`${inputClass} border-ink-900/10 bg-white text-ink-900 focus:border-signal-500`}
@@ -358,7 +358,7 @@ function InstructorRow({
                   onChange={(e) => setFullName(e.target.value)}
                 />
               </Field>
-              <Field label="Email" htmlFor={`email-${instructor.id}`}>
+              <Field label="Email" htmlFor={`email-${instructor.id}`} className="text-ink-900/75">
                 <input
                   id={`email-${instructor.id}`}
                   type="email"
@@ -367,7 +367,7 @@ function InstructorRow({
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </Field>
-              <Field label="Phone" htmlFor={`phone-${instructor.id}`}>
+              <Field label="Phone" htmlFor={`phone-${instructor.id}`} className="text-ink-900/75">
                 <input
                   id={`phone-${instructor.id}`}
                   className={`${inputClass} border-ink-900/10 bg-white text-ink-900 focus:border-signal-500`}

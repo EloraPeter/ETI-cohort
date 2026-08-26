@@ -62,7 +62,7 @@ export default function InstructorLoginPage() {
           <h1 className="mt-5 text-center text-xl font-semibold text-ink-900">Instructor sign in</h1>
           <p className="mt-1 text-center text-sm text-ink-700">Elora Tech Institute</p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-ink-900/75">
             {error && (
               <p role="alert" className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700">
                 {error}

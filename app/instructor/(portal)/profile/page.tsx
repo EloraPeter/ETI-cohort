@@ -173,7 +173,7 @@ export default function InstructorProfilePage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-6">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-6 text-ink-900/75">
           {error && (
             <p role="alert" className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700">
               {error}

@@ -22,7 +22,7 @@ import type { CurriculumClass, ClassResource, Curriculum } from "@/lib/supabase/
 
 export const dynamic = "force-dynamic";
 
-const lightInput = `${inputClass} border-ink-900/10 bg-white text-ink-900 placeholder:text-ink-700/40 focus:border-signal-500`;
+const lightInput = `${inputClass} border-ink-900/10 bg-white text-ink-900 placeholder:text-ink-700/60 focus:border-signal-500`;
 const lightTextarea = "w-full rounded-lg border border-ink-900/10 bg-white px-3 py-2 text-sm text-ink-900 outline-none focus:border-signal-500";
 
 /** Multi-line textarea in, string[] out — every list field (teaching
@@ -272,7 +272,7 @@ function ClassRow({
       </div>
 
       {expanded === "preview" && (
-        <div className="space-y-3 border-t border-ink-900/10 px-4 py-4 text-sm">
+        <div className="space-y-3 border-t border-ink-900/10 px-4 py-4 text-sm text-ink-900/75">
           <p>
             <span className="font-semibold">Outcome:</span> {classItem.outcome}
           </p>
@@ -307,7 +307,7 @@ function ClassRow({
       )}
 
       {expanded === "edit" && (
-        <div className="space-y-4 border-t border-ink-900/10 px-4 py-4">
+        <div className="space-y-4 border-t border-ink-900/10 px-4 py-4 text-ink-900/75">
           <Field label="Title" htmlFor={`title-${classItem.id}`}>
             <input id={`title-${classItem.id}`} className={lightInput} value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
@@ -340,7 +340,7 @@ function ClassRow({
             Save changes
           </button>
 
-          <div className="border-t border-ink-900/10 pt-4">
+          <div className="border-t border-ink-900/10 pt-4 text-ink-900/75">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-700/70">Resources</p>
             {resources === null ? (
               <Loader2 className="mt-2 h-4 w-4 animate-spin text-ink-700" aria-hidden="true" />
@@ -358,7 +358,7 @@ function ClassRow({
                     </li>
                   ))}
                 </ul>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-ink-900/75">
                   <input
                     placeholder="Label (e.g. Starter code)"
                     className={`${lightInput} w-48`}

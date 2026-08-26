@@ -121,8 +121,8 @@ export default function AdminCohortsPage() {
       </div>
 
       {showAddForm && (
-        <form onSubmit={handleCreate} className="mt-4 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <form onSubmit={handleCreate} className="mt-4 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-5 text-ink-900/75">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 text-ink-900/75">
             <Field label="Name" htmlFor="name">
               <input id="name" required className={lightInput} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>
@@ -298,7 +298,7 @@ function CohortRow({
   }
 
   return (
-    <div className="rounded-xl2 border border-ink-900/10 bg-white">
+    <div className="rounded-xl2 border border-ink-900/10 bg-white text-ink-900/75">
       <button onClick={toggleExpanded} className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left">
         <div>
           <p className="font-medium text-ink-900">{cohort.name}</p>
