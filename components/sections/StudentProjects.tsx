@@ -1,6 +1,7 @@
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { studentProjects } from "@/lib/content";
+import Image from "next/image";
 
 export function StudentProjects() {
   return (
@@ -20,6 +21,12 @@ export function StudentProjects() {
             >
               <div className="absolute inset-0 bg-brand-gradient opacity-[0.12] transition-opacity duration-300 group-hover:opacity-25" />
               <div className="absolute inset-0 section-grid-bg opacity-40" aria-hidden="true" />
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
               <div className="absolute inset-x-0 bottom-0 p-5">
                 <p className="font-mono text-xs uppercase tracking-wide text-sky-400">{project.tag}</p>
                 <h3 className="mt-1 text-base font-semibold text-white">{project.title}</h3>

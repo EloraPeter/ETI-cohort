@@ -104,13 +104,39 @@ export const curriculum = [
   },
 ] as const;
 
+import Image from "next/image";
+
 export const studentProjects = [
-  { title: "Portfolio Website", tag: "Personal brand" },
-  { title: "Business Website", tag: "Local business" },
-  { title: "Restaurant Website", tag: "Hospitality" },
-  { title: "Landing Page", tag: "Product launch" },
-  { title: "Weather App", tag: "API integration" },
-  { title: "Interactive JS App", tag: "Logic & state" },
+  {
+    title: "Portfolio Website",
+    tag: "Personal brand",
+    image: "/Modern_personal_portfolio_website.jpeg",
+  },
+  {
+    title: "Business Website",
+    tag: "Local business",
+    image: "/Website_layout_for_local_business.jpeg",
+  },
+  {
+    title: "Restaurant Website",
+    tag: "Hospitality",
+    image: "/Modern_restaurant_website_desktopjpeg.jpeg",
+  },
+  {
+    title: "Landing Page",
+    tag: "Product launch",
+    image: "/SaaS_product_landing_page_layout.jpeg",
+  },
+  {
+    title: "Weather App",
+    tag: "API integration",
+    image: "/Weather_web_application_dashboard.jpeg",
+  },
+  {
+    title: "Interactive JS App",
+    tag: "Logic & state",
+    image: "/Interactive_productivity_management.jpeg",
+  },
 ] as const;
 
 export const pricingInclusions = [
