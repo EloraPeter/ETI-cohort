@@ -1,12 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field } from "@/components/ui/Field";
-import { createClient } from "@/lib/supabase/client";
+import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
 import { ROUTES } from "@/lib/routes";
 import type { Instructor } from "@/lib/supabase/types";
 import type { ProfileCompletion } from "@/lib/instructors/profileCompletion";
@@ -17,11 +16,8 @@ const lightInputClass =
   "w-full rounded-lg border border-ink-900/10 bg-white px-4 py-2.5 text-sm text-ink-900 placeholder:text-ink-700/40 outline-none focus:border-signal-500";
 
 export default function InstructorProfilePage() {
-  const router = useRouter();
-  const supabase = createClient();
+  const { authedFetch } = useInstructorAuth();
 
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -40,24 +36,9 @@ export default function InstructorProfilePage() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace(ROUTES.instructorLogin);
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/instructor/profile", { headers: { Authorization: `Bearer ${accessToken}` } });
-    if (res.status === 401) {
-      router.replace(ROUTES.instructorLogin);
-      return;
-    }
+    const res = await authedFetch("/api/instructor/profile");
     if (res.ok) {
       const data = await res.json();
       const inst: Instructor = data.instructor;
@@ -73,11 +54,11 @@ export default function InstructorProfilePage() {
       setGithubUrl(inst.github_url ?? "");
     }
     setLoading(false);
-  }, [accessToken, router]);
+  }, [authedFetch]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
+    load();
+  }, [load]);
 
   async function handlePhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -90,9 +71,8 @@ export default function InstructorProfilePage() {
 
     const formData = new FormData();
     formData.append("file", file);
-    const uploadRes = await fetch("/api/instructor/profile/photo", {
+    const uploadRes = await authedFetch("/api/instructor/profile/photo", {
       method: "POST",
-      headers: { Authorization: `Bearer ${accessToken}` },
       body: formData,
     });
 
@@ -108,9 +88,9 @@ export default function InstructorProfilePage() {
     // that's the single place profile-completion tracking lives, so
     // uploading a photo correctly counts toward "profile complete"
     // the same way typing a URL used to.
-    const saveRes = await fetch("/api/instructor/profile", {
+    const saveRes = await authedFetch("/api/instructor/profile", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ profilePhotoUrl: url }),
     });
 
@@ -133,9 +113,9 @@ export default function InstructorProfilePage() {
     setError(null);
     setSaved(false);
 
-    const res = await fetch("/api/instructor/profile", {
+    const res = await authedFetch("/api/instructor/profile", {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         fullName,
         phone: phone || null,
@@ -160,19 +140,18 @@ export default function InstructorProfilePage() {
     setSaving(false);
   }
 
-  if (checkingAuth || loading) {
+  if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
+      <div className="flex justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
+      </div>
     );
   }
 
   if (!instructor) return null;
 
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-xl">
+    <Container className="max-w-xl py-10">
         <Link href={ROUTES.instructorDashboard} className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to dashboard
@@ -288,6 +267,5 @@ export default function InstructorProfilePage() {
           </button>
         </form>
       </Container>
-    </main>
   );
 }

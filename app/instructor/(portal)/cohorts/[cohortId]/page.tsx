@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Users, CalendarDays, IdCard } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { createClient } from "@/lib/supabase/client";
+import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
 import { ROUTES } from "@/lib/routes";
 import { formatWeeklySchedule } from "@/lib/calendar/formatSchedule";
 import type { Cohort } from "@/lib/supabase/types";
@@ -31,39 +31,19 @@ const studentStatusBadge: Record<string, string> = {
 };
 
 export default function InstructorCohortRosterPage() {
-  const router = useRouter();
   const params = useParams<{ cohortId: string }>();
-  const supabase = createClient();
+  const { authedFetch } = useInstructorAuth();
 
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [cohort, setCohort] = useState<Cohort | null>(null);
   const [students, setStudents] = useState<RosterStudent[]>([]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace(ROUTES.instructorLogin);
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const res = await fetch(`/api/instructor/cohorts/${params.cohortId}/students`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (res.status === 401) {
-      router.replace(ROUTES.instructorLogin);
-      return;
-    }
+    const res = await authedFetch(`/api/instructor/cohorts/${params.cohortId}/students`);
     if (res.status === 403) {
       setError("You're not assigned to this cohort.");
       setLoading(false);
@@ -82,23 +62,22 @@ export default function InstructorCohortRosterPage() {
       setError("Couldn't load this cohort. Try refreshing.");
     }
     setLoading(false);
-  }, [accessToken, params.cohortId, router]);
+  }, [authedFetch, params.cohortId]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
+    load();
+  }, [load]);
 
-  if (checkingAuth || loading) {
+  if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
+      <div className="flex justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-4xl">
+    <Container className="max-w-4xl py-10">
         <Link href={ROUTES.instructorDashboard} className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to dashboard
@@ -183,6 +162,5 @@ export default function InstructorCohortRosterPage() {
           </>
         )}
       </Container>
-    </main>
   );
 }

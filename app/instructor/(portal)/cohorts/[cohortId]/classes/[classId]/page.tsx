@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -22,8 +22,7 @@ import {
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { createClient } from "@/lib/supabase/client";
-import { ROUTES } from "@/lib/routes";
+import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
 import type { CurriculumClass, ClassResource, CompletionChecklistEntry, ClassCompletionStatus } from "@/lib/supabase/types";
 
 export const dynamic = "force-dynamic";
@@ -38,12 +37,9 @@ const textareaClass =
   "w-full rounded-lg border border-ink-900/10 bg-white px-3 py-2 text-sm text-ink-900 outline-none focus:border-signal-500";
 
 export default function InstructorTeachingGuidePage() {
-  const router = useRouter();
   const params = useParams<{ cohortId: string; classId: string }>();
-  const supabase = createClient();
+  const { authedFetch: contextAuthedFetch } = useInstructorAuth();
 
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -57,31 +53,19 @@ export default function InstructorTeachingGuidePage() {
   const [carryOver, setCarryOver] = useState("");
   const [carryOverFromPrevious, setCarryOverFromPrevious] = useState<CarryOverFromPrevious | null>(null);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace(ROUTES.instructorLogin);
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
+  // Thin wrapper adding the JSON content-type this page's PATCH calls
+  // need — the shared context's authedFetch only sets Authorization,
+  // same shape as every other page's usage.
   const authedFetch = useCallback(
     (url: string, init?: RequestInit) =>
-      fetch(url, { ...init, headers: { ...init?.headers, Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" } }),
-    [accessToken]
+      contextAuthedFetch(url, { ...init, headers: { "Content-Type": "application/json", ...init?.headers } }),
+    [contextAuthedFetch]
   );
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     const res = await authedFetch(`/api/instructor/cohorts/${params.cohortId}/classes/${params.classId}`);
-    if (res.status === 401) {
-      router.replace(ROUTES.instructorLogin);
-      return;
-    }
     if (res.status === 403) {
       setError("You're not assigned to this cohort.");
       setLoading(false);
@@ -105,11 +89,11 @@ export default function InstructorTeachingGuidePage() {
       setError("Couldn't load this class. Try refreshing.");
     }
     setLoading(false);
-  }, [authedFetch, params.cohortId, params.classId, router]);
+  }, [authedFetch, params.cohortId, params.classId]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
+    load();
+  }, [load]);
 
   async function patchCompletion(body: Record<string, unknown>) {
     const res = await authedFetch(`/api/instructor/cohorts/${params.cohortId}/classes/${params.classId}`, {
@@ -150,17 +134,16 @@ export default function InstructorTeachingGuidePage() {
     }
   }
 
-  if (checkingAuth || loading) {
+  if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
+      <div className="flex justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-3xl">
+    <Container className="max-w-3xl py-10">
         <Link href={`/instructor/cohorts/${params.cohortId}`} className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to cohort
@@ -316,7 +299,6 @@ export default function InstructorTeachingGuidePage() {
           </>
         ) : null}
       </Container>
-    </main>
   );
 }
 

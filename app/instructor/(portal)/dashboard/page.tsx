@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, Loader2, UserCircle, Users, GraduationCap, CalendarDays, ChevronRight, AlertTriangle, BookOpen } from "lucide-react";
+import { Loader2, Users, GraduationCap, CalendarDays, ChevronRight, AlertTriangle, BookOpen } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { StatCard } from "@/components/admin/StatCard";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { createClient } from "@/lib/supabase/client";
+import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
 import { ROUTES } from "@/lib/routes";
 import { formatWeeklySchedule } from "@/lib/calendar/formatSchedule";
 import type { ProfileCompletion } from "@/lib/instructors/profileCompletion";
@@ -23,11 +22,8 @@ const statusBadgeClass: Record<string, string> = {
 };
 
 export default function InstructorDashboardPage() {
-  const router = useRouter();
-  const supabase = createClient();
+  const { authedFetch } = useInstructorAuth();
 
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,31 +32,10 @@ export default function InstructorDashboardPage() {
   const [cohorts, setCohorts] = useState<InstructorDashboardCohort[]>([]);
   const [stats, setStats] = useState({ cohortCount: 0, studentCount: 0 });
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace(ROUTES.instructorLogin);
-        return;
-      }
-      setAccessToken(data.session.access_token);
-      setCheckingAuth(false);
-    });
-  }, [router, supabase]);
-
-  const authedFetch = useCallback(
-    (url: string, init?: RequestInit) =>
-      fetch(url, { ...init, headers: { ...init?.headers, Authorization: `Bearer ${accessToken}` } }),
-    [accessToken]
-  );
-
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     const res = await authedFetch("/api/instructor/dashboard");
-    if (res.status === 401) {
-      router.replace(ROUTES.instructorLogin);
-      return;
-    }
     if (res.ok) {
       const data = await res.json();
       setInstructor(data.instructor);
@@ -71,75 +46,41 @@ export default function InstructorDashboardPage() {
       setError("Couldn't load your dashboard. Try refreshing.");
     }
     setLoading(false);
-  }, [authedFetch, router]);
+  }, [authedFetch]);
 
   useEffect(() => {
-    if (!checkingAuth && accessToken) load();
-  }, [checkingAuth, accessToken, load]);
+    load();
+  }, [load]);
 
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.replace(ROUTES.instructorLogin);
-  }
-
-  if (checkingAuth || loading) {
+  if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
+      <div className="flex justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50 px-4">
+      <div className="flex justify-center px-4 py-16">
         <p className="text-sm text-ink-700">{error}</p>
-      </main>
+      </div>
     );
   }
 
   if (!instructor || !completion) return null;
 
-  const firstName = instructor.full_name.split(" ")[0];
-
   return (
-    <main className="min-h-screen bg-paper-50 py-10 text-ink-900">
-      <Container className="max-w-5xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            {instructor.profile_photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={instructor.profile_photo_url}
-                alt=""
-                className="h-11 w-11 rounded-full object-cover"
-              />
-            ) : (
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-ink-900/10">
-                <UserCircle className="h-6 w-6 text-ink-700" aria-hidden="true" />
-              </div>
-            )}
-            <div>
-              <p className="text-xs uppercase tracking-wide text-ink-700/70">Welcome back</p>
-              <h1 className="font-display text-2xl font-semibold">{firstName}</h1>
-            </div>
-            <span className={`${statusBadgeClass[instructor.status] ?? "badge-warning"} capitalize`}>
-              {instructor.status}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href={ROUTES.instructorProfile} className="text-sm font-medium text-signal-500 hover:underline">
-              My profile
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-2 rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-white"
-            >
-              <LogOut className="h-4 w-4" aria-hidden="true" />
-              Sign out
-            </button>
-          </div>
+    <Container className="max-w-5xl py-10">
+      <div>
+        <p className="text-xs uppercase tracking-wide text-ink-700/70">Welcome back</p>
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <h1 className="font-display text-2xl font-semibold text-ink-900">{instructor.full_name.split(" ")[0]}</h1>
+          <span className={`${statusBadgeClass[instructor.status] ?? "badge-warning"} capitalize`}>
+            {instructor.status}
+          </span>
         </div>
+      </div>
 
         {!completion.isComplete && (
           <Link
@@ -308,6 +249,5 @@ export default function InstructorDashboardPage() {
           Elora Tech Institute — Instructor Dashboard
         </div>
       </Container>
-    </main>
   );
 }
