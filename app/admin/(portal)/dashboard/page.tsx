@@ -8,11 +8,29 @@ import { StatCard } from "@/components/admin/StatCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/Badge";
 import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import { registrationsToCsv, downloadCsv } from "@/lib/csv";
 import type { Registration, RegistrationStatus } from "@/lib/supabase/types";
 
 type RegistrationRow = Registration & { student_id: string | null };
+
+/** RegistrationStatus includes legacy values from before the current
+ *  status set (see lib/supabase/types.ts) — mapped here so old rows
+ *  never render with an unstyled/undefined badge. */
+function registrationStatusVariant(status: RegistrationStatus): "success" | "warning" | "error" {
+  switch (status) {
+    case "paid":
+    case "enrolled":
+      return "success";
+    case "failed":
+    case "declined":
+    case "cancelled":
+      return "error";
+    default:
+      return "warning";
+  }
+}
 
 // Session-gated and data-driven — never statically prerendered.
 export const dynamic = "force-dynamic";
@@ -195,9 +213,9 @@ export default function AdminDashboardPage() {
                 <div className="flex flex-col gap-1 sm:hidden">
                   <div className="flex items-start justify-between gap-2">
                     <RegistrantName row={row} />
-                    <span className="inline-block shrink-0 rounded-full bg-ink-900/5 px-2.5 py-1 text-xs font-medium capitalize text-ink-800">
+                    <Badge variant={registrationStatusVariant(row.status)} className="shrink-0 capitalize">
                       {row.status.replace("_", " ")}
-                    </span>
+                    </Badge>
                   </div>
                   <p className="truncate text-ink-700">{row.email}</p>
                   <div className="flex items-center justify-between text-xs text-ink-700/70">
@@ -215,9 +233,9 @@ export default function AdminDashboardPage() {
                   <span className="text-ink-700">{row.phone}</span>
                   <span className="text-ink-700">{row.owns_laptop ? "Yes" : "No"}</span>
                   <span>
-                    <span className="inline-block rounded-full bg-ink-900/5 px-2.5 py-1 text-xs font-medium capitalize text-ink-800">
+                    <Badge variant={registrationStatusVariant(row.status)} className="capitalize">
                       {row.status.replace("_", " ")}
-                    </span>
+                    </Badge>
                   </span>
                   <span className="text-xs text-ink-700/70">{new Date(row.created_at).toLocaleDateString()}</span>
                 </div>

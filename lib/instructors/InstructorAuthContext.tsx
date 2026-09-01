@@ -3,9 +3,9 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ROUTES } from "@/lib/routes";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import type { Instructor } from "@/lib/supabase/types";
 
 type InstructorIdentity = Pick<Instructor, "full_name" | "profile_photo_url" | "status">;
@@ -106,11 +106,7 @@ export function InstructorAuthProvider({ children }: { children: ReactNode }) {
   }, [accessToken]);
 
   if (checkingAuth || !accessToken) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
-        <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
-    );
+    return <PageSkeleton />;
   }
 
   return (

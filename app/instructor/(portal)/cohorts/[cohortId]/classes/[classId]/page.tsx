@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
 import type { CurriculumClass, ClassResource, CompletionChecklistEntry, ClassCompletionStatus } from "@/lib/supabase/types";
 
@@ -43,6 +44,7 @@ export default function InstructorTeachingGuidePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmingComplete, setConfirmingComplete] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   const [classData, setClassData] = useState<CurriculumClass | null>(null);
@@ -121,8 +123,8 @@ export default function InstructorTeachingGuidePage() {
     setSaveMessage(res.ok ? "Saved." : "Couldn't save. Try again.");
   }
 
-  async function handleMarkComplete() {
-    if (!window.confirm("Mark this class complete? You can still edit notes and carry-over afterward.")) return;
+  async function performMarkComplete() {
+    setConfirmingComplete(false);
     setSaving(true);
     const res = await patchCompletion({ notes, carry_over: carryOver, markComplete: true });
     setSaving(false);
@@ -143,7 +145,8 @@ export default function InstructorTeachingGuidePage() {
   }
 
   return (
-    <Container className="max-w-3xl py-10">
+    <>
+      <Container className="max-w-3xl py-10">
         <Link href={`/instructor/cohorts/${params.cohortId}`} className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to cohort
@@ -289,7 +292,7 @@ export default function InstructorTeachingGuidePage() {
             {/* Mark complete */}
             <div className="mt-6 flex justify-end">
               <button
-                onClick={handleMarkComplete}
+                onClick={() => setConfirmingComplete(true)}
                 disabled={saving || status === "completed"}
                 className="rounded-lg bg-ink-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-ink-800 disabled:opacity-60"
               >
@@ -299,6 +302,16 @@ export default function InstructorTeachingGuidePage() {
           </>
         ) : null}
       </Container>
+
+      <ConfirmDialog
+        open={confirmingComplete}
+        title="Mark this class complete?"
+        description="You can still edit notes and carry-over afterward."
+        confirmLabel="Mark Complete"
+        onConfirm={performMarkComplete}
+        onCancel={() => setConfirmingComplete(false)}
+      />
+    </>
   );
 }
 

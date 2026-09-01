@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Badge } from "@/components/Badge";
 import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import { MANAGED_RESOURCE_ITEMS } from "@/lib/checklist/managedResources";
 import type { WeeklyScheduleEntry } from "@/lib/supabase/types";
@@ -182,7 +183,7 @@ export default function AdminResourcesPage() {
         {message && <p className="mt-4 rounded-lg border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-800">{message}</p>}
 
         {/* Class schedule editor */}
-        <div className="mt-6 rounded-2xl border border-ink-900/10 bg-white p-6">
+        <div className="mt-6 rounded-2xl border border-ink-900/10 bg-white p-6 text-ink-700">
           <h2 className="font-display text-lg font-semibold">Class Schedule</h2>
           <div className="mt-4 space-y-3">
             {scheduleDraft.length === 0 && <p className="text-sm text-ink-700">No classes added yet.</p>}
@@ -324,7 +325,7 @@ function ResourceRow({
 
   return (
     <tr>
-      <td className="px-5 py-4">
+      <td className="px-5 py-4 text-ink-700">
         <div className="flex items-center gap-2 font-medium">
           <Icon className="h-4 w-4 text-signal-500" aria-hidden="true" />
           {config.label}
@@ -342,14 +343,10 @@ function ResourceRow({
         </span>
       </td>
       <td className="px-5 py-4">
-        <span
-          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-            configured ? "bg-emerald-100 text-emerald-700" : "bg-ink-900/5 text-ink-700"
-          }`}
-        >
+        <Badge variant={configured ? "success" : "neutral"}>
           {configured && <CheckCircle2 className="h-3 w-3" aria-hidden="true" />}
           {configured ? (config.kind === "file" ? "Uploaded" : "Configured") : "Not configured"}
-        </span>
+        </Badge>
       </td>
       <td className="px-5 py-4">
         {isGlobal ? (

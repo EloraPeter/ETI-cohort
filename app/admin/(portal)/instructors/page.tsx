@@ -7,6 +7,7 @@ import { Field, inputClass } from "@/components/ui/Field";
 import { StatCard } from "@/components/admin/StatCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { Instructor, InstructorStatus } from "@/lib/supabase/types";
 
@@ -223,6 +224,7 @@ function InstructorRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmingStatusChange, setConfirmingStatusChange] = useState(false);
 
   const [fullName, setFullName] = useState(instructor.full_name);
   const [phone, setPhone] = useState(instructor.phone ?? "");
@@ -265,9 +267,9 @@ function InstructorRow({
     }
   }
 
-  async function handleToggleStatus() {
+  async function performToggleStatus() {
     const nextStatus = instructor.status === "active" ? "inactive" : "active";
-    if (!window.confirm(`${nextStatus === "inactive" ? "Deactivate" : "Reactivate"} ${instructor.full_name}?`)) return;
+    setConfirmingStatusChange(false);
     setSaving(true);
     const res = await authedFetch(`/api/admin/instructors/${instructor.id}`, {
       method: "PATCH",
@@ -386,7 +388,7 @@ function InstructorRow({
               </button>
               {instructor.status !== "invited" && (
                 <button
-                  onClick={handleToggleStatus}
+                  onClick={() => setConfirmingStatusChange(true)}
                   disabled={saving}
                   className="rounded-lg border border-ink-900/10 px-4 py-2 text-sm font-medium text-ink-800 hover:bg-paper-50 disabled:opacity-60"
                 >
@@ -446,6 +448,20 @@ function InstructorRow({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmingStatusChange}
+        title={instructor.status === "active" ? "Deactivate instructor?" : "Reactivate instructor?"}
+        description={
+          instructor.status === "active"
+            ? `${instructor.full_name} will lose access to the instructor dashboard until reactivated.`
+            : `${instructor.full_name} will regain access to the instructor dashboard.`
+        }
+        confirmLabel={instructor.status === "active" ? "Deactivate" : "Reactivate"}
+        variant={instructor.status === "active" ? "danger" : "primary"}
+        onConfirm={performToggleStatus}
+        onCancel={() => setConfirmingStatusChange(false)}
+      />
     </div>
   );
 }

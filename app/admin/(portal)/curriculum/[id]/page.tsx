@@ -361,13 +361,13 @@ function ClassRow({
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-ink-900/75">
                   <input
                     placeholder="Label (e.g. Starter code)"
-                    className={`${lightInput} w-48`}
+                    className={`${lightInput} w-48 placeholder:text-ink-700/50`}
                     value={newResourceLabel}
                     onChange={(e) => setNewResourceLabel(e.target.value)}
                   />
                   <input
                     placeholder="https://..."
-                    className={`${lightInput} w-56`}
+                    className={`${lightInput} w-56 placeholder:text-ink-700/50`}
                     value={newResourceUrl}
                     onChange={(e) => setNewResourceUrl(e.target.value)}
                   />

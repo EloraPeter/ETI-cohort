@@ -3,8 +3,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { PageSkeleton } from "@/components/PageSkeleton";
 
 interface AdminAuthContextValue {
   accessToken: string;
@@ -76,11 +76,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   );
 
   if (checkingAuth || !accessToken) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-paper-50">
-        <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
-      </main>
-    );
+    return <PageSkeleton />;
   }
 
   return <AdminAuthContext.Provider value={{ accessToken, authedFetch, signOut }}>{children}</AdminAuthContext.Provider>;
