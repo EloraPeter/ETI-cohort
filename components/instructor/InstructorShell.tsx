@@ -98,6 +98,12 @@ function ProfileMenu() {
 export function InstructorShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-paper-50">
+      <a
+        href="#instructor-main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-ink-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+      >
+        Skip to content
+      </a>
       <header className="border-b border-ink-900/10 bg-white/60">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <Link href={ROUTES.instructorDashboard} className="text-sm font-semibold text-ink-900 focus:outline-none focus:ring-2 focus:ring-signal-500 rounded">
@@ -106,7 +112,7 @@ export function InstructorShell({ children }: { children: ReactNode }) {
           <ProfileMenu />
         </div>
       </header>
-      <main>{children}</main>
+      <main id="instructor-main-content">{children}</main>
     </div>
   );
 }

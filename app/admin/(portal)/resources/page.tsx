@@ -159,7 +159,7 @@ export default function AdminResourcesPage() {
   }
 
   return (
-    <Container className="max-w-4xl">
+    <Container className="max-w-5xl">
       <PageHeader title="Onboarding & Cohort Operations" subtitle="Manage the class schedule and onboarding resources per cohort" />
 
       <div className="mt-6 flex items-center gap-3">

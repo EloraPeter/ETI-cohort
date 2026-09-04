@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, IdCard, GraduationCap, CreditCard, ListChecks, CheckCircle2, Circle } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { ChecklistItemWithProgress } from "@/lib/supabase/types";
@@ -167,7 +168,7 @@ export default function AdminStudentDetailPage() {
             </div>
 
             {/* Identity / contact */}
-            <section className="mt-6 rounded-xl2 border border-ink-900/10 bg-white p-5">
+            <Card as="section" className="mt-6">
               <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-700/70">
                 <IdCard className="h-4 w-4" aria-hidden="true" />
                 Student
@@ -184,11 +185,11 @@ export default function AdminStudentDetailPage() {
                   value={student.profile_completed_at ? new Date(student.profile_completed_at).toLocaleDateString("en-NG") : "Not yet"}
                 />
               </dl>
-            </section>
+            </Card>
 
             {/* Cohort */}
             {cohort && (
-              <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+              <Card as="section" className="mt-4">
                 <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-700/70">
                   <GraduationCap className="h-4 w-4" aria-hidden="true" />
                   Cohort
@@ -199,11 +200,11 @@ export default function AdminStudentDetailPage() {
                   <Row label="Starts" value={new Date(cohort.starts_on).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })} />
                   <Row label="Duration" value={`${cohort.duration_weeks} weeks`} />
                 </dl>
-              </section>
+              </Card>
             )}
 
             {/* Payment */}
-            <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+            <Card as="section" className="mt-4">
               <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-ink-700/70">
                 <CreditCard className="h-4 w-4" aria-hidden="true" />
                 Payment
@@ -220,11 +221,11 @@ export default function AdminStudentDetailPage() {
               ) : (
                 <p className="mt-3 text-sm text-ink-700">No payment record found.</p>
               )}
-            </section>
+            </Card>
 
             {/* Registration */}
             {registration && (
-              <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+              <Card as="section" className="mt-4">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-700/70">Registration</h2>
                 <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                   <Row label="Age" value={String(registration.age)} />
@@ -248,11 +249,11 @@ export default function AdminStudentDetailPage() {
                     <p className="mt-1 text-sm text-ink-800">{registration.admin_notes}</p>
                   </div>
                 )}
-              </section>
+              </Card>
             )}
 
             {/* Checklist */}
-            <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+            <Card as="section" className="mt-4">
               <h2 className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-ink-700/70">
                 <span className="flex items-center gap-2">
                   <ListChecks className="h-4 w-4" aria-hidden="true" />
@@ -267,7 +268,7 @@ export default function AdminStudentDetailPage() {
               ) : (
                 <ChecklistTree items={checklist} />
               )}
-            </section>
+            </Card>
           </>
         ) : null}
       </Container>

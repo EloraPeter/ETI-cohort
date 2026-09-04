@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, Plus, GraduationCap, Mail, RotateCcw } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { Field, inputClass } from "@/components/ui/Field";
 import { StatCard } from "@/components/admin/StatCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -335,7 +336,7 @@ function InstructorRow({
   }
 
   return (
-    <div className="rounded-xl2 border border-ink-900/10 bg-white">
+    <Card padded={false}>
       <button onClick={toggleExpanded} className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left">
         <div>
           <p className="font-medium text-ink-900">{instructor.full_name}</p>
@@ -462,6 +463,6 @@ function InstructorRow({
         onConfirm={performToggleStatus}
         onCancel={() => setConfirmingStatusChange(false)}
       />
-    </div>
+    </Card>
   );
 }

@@ -7,6 +7,7 @@ import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
 import { StatCard } from "@/components/admin/StatCard";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
 import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { Cohort } from "@/lib/supabase/types";
 
@@ -192,9 +193,9 @@ export default function AdminCohortsPage() {
             <Loader2 className="h-5 w-5 animate-spin text-ink-700" aria-hidden="true" />
           </div>
         ) : cohorts.length === 0 ? (
-          <div className="rounded-xl2 border border-ink-900/10 bg-white px-5 py-16 text-center text-sm text-ink-700">
+          <Card className="px-5 py-16 text-center text-sm text-ink-700" padded={false}>
             No cohorts yet. Add your first cohort above.
-          </div>
+          </Card>
         ) : (
           <div className="space-y-3">
             {cohorts.map((cohort) => (
@@ -298,7 +299,7 @@ function CohortRow({
   }
 
   return (
-    <div className="rounded-xl2 border border-ink-900/10 bg-white text-ink-900/75">
+    <Card padded={false} className="text-ink-900/75">
       <button onClick={toggleExpanded} className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left">
         <div>
           <p className="font-medium text-ink-900">{cohort.name}</p>
@@ -413,6 +414,6 @@ function CohortRow({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

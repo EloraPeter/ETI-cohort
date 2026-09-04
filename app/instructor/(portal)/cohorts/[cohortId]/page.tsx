@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Users, CalendarDays, IdCard } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
 import { ROUTES } from "@/lib/routes";
@@ -77,7 +78,7 @@ export default function InstructorCohortRosterPage() {
   }
 
   return (
-    <Container className="max-w-4xl py-10">
+    <Container className="max-w-5xl py-10">
         <Link href={ROUTES.instructorDashboard} className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to dashboard
@@ -110,7 +111,7 @@ export default function InstructorCohortRosterPage() {
               </span>
             </div>
 
-            <div className="mt-6 overflow-hidden rounded-xl2 border border-ink-900/10 bg-white">
+            <Card padded={false} className="mt-6">
               <div className="hidden grid-cols-[1.3fr_1fr_1.3fr_1fr_0.9fr] gap-4 border-b border-ink-900/10 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-ink-700/70 sm:grid">
                 <span>Name</span>
                 <span>Student ID</span>
@@ -158,7 +159,7 @@ export default function InstructorCohortRosterPage() {
                   ))}
                 </ul>
               )}
-            </div>
+            </Card>
           </>
         )}
       </Container>

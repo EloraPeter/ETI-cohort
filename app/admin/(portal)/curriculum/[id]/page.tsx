@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { Field, inputClass } from "@/components/ui/Field";
 import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { CurriculumClass, ClassResource, Curriculum } from "@/lib/supabase/types";
@@ -230,7 +231,7 @@ function ClassRow({
   }
 
   return (
-    <div className="rounded-xl2 border border-ink-900/10 bg-white">
+    <Card padded={false}>
       <div className="flex items-center gap-2 px-4 py-3">
         <div className="flex flex-col">
           <button
@@ -384,7 +385,7 @@ function ClassRow({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 

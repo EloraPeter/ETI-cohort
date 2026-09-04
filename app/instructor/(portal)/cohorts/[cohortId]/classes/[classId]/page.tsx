@@ -21,6 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
@@ -183,10 +184,10 @@ export default function InstructorTeachingGuidePage() {
             )}
 
             {/* Learning outcome */}
-            <section className="mt-6 rounded-xl2 border border-ink-900/10 bg-white p-5">
+            <Card as="section" className="mt-6">
               <SectionHeading icon={Lightbulb}>Today&apos;s Outcome</SectionHeading>
               <p className="mt-2 text-sm text-ink-900">{classData.outcome}</p>
-            </section>
+            </Card>
 
             {/* What to teach */}
             {classData.teaching_points.length > 0 && (
@@ -206,15 +207,15 @@ export default function InstructorTeachingGuidePage() {
 
             {/* Assignment */}
             {classData.assignment && (
-              <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+              <Card as="section" className="mt-4">
                 <SectionHeading icon={Forward}>Assignment</SectionHeading>
                 <p className="mt-2 text-sm text-ink-900">{classData.assignment}</p>
-              </section>
+              </Card>
             )}
 
             {/* Resources */}
             {resources.length > 0 && (
-              <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+              <Card as="section" className="mt-4">
                 <SectionHeading icon={Library}>Resources</SectionHeading>
                 <ul className="mt-2 space-y-1.5">
                   {resources.map((r) => (
@@ -231,11 +232,11 @@ export default function InstructorTeachingGuidePage() {
                     </li>
                   ))}
                 </ul>
-              </section>
+              </Card>
             )}
 
             {/* Completion checklist */}
-            <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+            <Card as="section" className="mt-4">
               <SectionHeading icon={CheckCircle2}>Completion Checklist</SectionHeading>
               <ul className="mt-3 space-y-2">
                 {checklist.map((item) => (
@@ -254,10 +255,10 @@ export default function InstructorTeachingGuidePage() {
                   </li>
                 ))}
               </ul>
-            </section>
+            </Card>
 
             {/* Instructor notes + carry-over */}
-            <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+            <Card as="section" className="mt-4">
               <SectionHeading icon={StickyNote}>Instructor Notes</SectionHeading>
               <p className="mt-1 text-xs text-ink-700">What did students struggle with? What should the next instructor know?</p>
               <textarea
@@ -287,7 +288,7 @@ export default function InstructorTeachingGuidePage() {
                 </button>
                 {saveMessage && <span className="text-xs text-ink-700">{saveMessage}</span>}
               </div>
-            </section>
+            </Card>
 
             {/* Mark complete */}
             <div className="mt-6 flex justify-end">
@@ -326,7 +327,7 @@ function SectionHeading({ icon: Icon, children }: { icon: LucideIcon; children: 
 
 function ListSection({ icon, title, items }: { icon: LucideIcon; title: string; items: string[] }) {
   return (
-    <section className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-5">
+    <Card as="section" className="mt-4">
       <SectionHeading icon={icon}>{title}</SectionHeading>
       <ul className="mt-2 space-y-1.5">
         {items.map((item, i) => (
@@ -336,6 +337,6 @@ function ListSection({ icon, title, items }: { icon: LucideIcon; title: string; 
           </li>
         ))}
       </ul>
-    </section>
+    </Card>
   );
 }

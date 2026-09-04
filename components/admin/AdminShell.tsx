@@ -33,6 +33,36 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
   );
 }
 
+/** Icon-only nav for the tablet rail (768-1023px). Each item keeps a
+ *  real accessible name via aria-label; active state uses the same
+ *  shape/shadow treatment as the full sidebar, not color alone. */
+function RailLinks({ pathname }: { pathname: string }) {
+  return (
+    <nav aria-label="Admin sections" className="flex flex-col items-center gap-1">
+      {ADMIN_NAV_ITEMS.map((item) => {
+        const active = item.href === pathname;
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-current={active ? "page" : undefined}
+            aria-label={item.label}
+            title={item.label}
+            className={
+              active
+                ? "flex h-10 w-10 items-center justify-center rounded-lg bg-white text-ink-900 shadow-sm"
+                : "flex h-10 w-10 items-center justify-center rounded-lg text-ink-700 hover:bg-white/60 hover:text-ink-900"
+            }
+          >
+            <Icon className="h-5 w-5" aria-hidden="true" />
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { signOut } = useAdminAuth();
@@ -46,9 +76,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
     triggerRef.current?.focus();
   }, []);
 
-  // Lock background scroll and move focus into the drawer while open;
-  // "no background interaction" is enforced by the backdrop below
-  // (a full-screen click target) plus the focus trap here.
   useEffect(() => {
     if (!drawerOpen) return;
     const previousOverflow = document.body.style.overflow;
@@ -59,7 +86,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
     };
   }, [drawerOpen]);
 
-  // Escape closes; Tab is trapped within the drawer while it's open.
   useEffect(() => {
     if (!drawerOpen) return;
     function handleKeyDown(e: KeyboardEvent) {
@@ -87,8 +113,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-paper-50">
-      {/* Mobile/tablet top bar — hidden on desktop, where the sidebar is always visible */}
-      <div className="flex items-center justify-between border-b border-ink-900/10 bg-white px-4 py-3 lg:hidden">
+      <a
+        href="#admin-main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-ink-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+      >
+        Skip to content
+      </a>
+
+      <div className="flex items-center justify-between border-b border-ink-900/10 bg-white px-4 py-3 md:hidden">
         <button
           ref={triggerRef}
           onClick={() => setDrawerOpen(true)}
@@ -103,9 +135,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="w-9" aria-hidden="true" />
       </div>
 
-      {/* Mobile/tablet drawer */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="fixed inset-0 z-50 md:hidden">
           <button
             aria-label="Close admin navigation"
             onClick={closeDrawer}
@@ -146,8 +177,19 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div className="lg:flex">
-        {/* Desktop sidebar */}
+      <div className="md:flex">
+        <aside className="hidden w-16 shrink-0 flex-col items-center border-r border-ink-900/10 bg-white/60 py-4 md:flex lg:hidden">
+          <RailLinks pathname={pathname} />
+          <button
+            onClick={signOut}
+            aria-label="Sign out"
+            title="Sign out"
+            className="mt-4 flex h-10 w-10 items-center justify-center rounded-lg text-ink-700 hover:bg-white focus:outline-none focus:ring-2 focus:ring-signal-500"
+          >
+            <LogOut className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </aside>
+
         <aside className="hidden w-64 shrink-0 border-r border-ink-900/10 bg-white/60 p-4 lg:block">
           <div className="px-2">
             <p className="text-sm font-semibold text-ink-900">Elora Tech Institute</p>
@@ -165,7 +207,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </button>
         </aside>
 
-        <main className="min-w-0 flex-1 py-8">{children}</main>
+        <main id="admin-main-content" className="min-w-0 flex-1 py-8">
+          {children}
+        </main>
       </div>
     </div>
   );

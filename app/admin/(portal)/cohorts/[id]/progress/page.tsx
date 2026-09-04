@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, CheckCircle2, Circle, AlertTriangle } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAdminAuth } from "@/lib/admin/AdminAuthContext";
 import type { Cohort, CompletionChecklistEntry, ClassCompletionStatus } from "@/lib/supabase/types";
@@ -83,7 +84,7 @@ export default function AdminCohortProgressPage() {
               const hasDetail = row.notes || row.carry_over;
               const isExpanded = expandedId === row.class.id;
               return (
-                <div key={row.class.id} className="rounded-xl2 border border-ink-900/10 bg-white">
+                <Card key={row.class.id} padded={false}>
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : row.class.id)}
                     className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
@@ -118,7 +119,7 @@ export default function AdminCohortProgressPage() {
                       )}
                     </div>
                   )}
-                </div>
+                </Card>
               );
             })}
           </div>

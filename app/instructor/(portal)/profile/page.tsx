@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { useInstructorAuth } from "@/lib/instructors/InstructorAuthContext";
 import { ROUTES } from "@/lib/routes";
@@ -151,7 +152,7 @@ export default function InstructorProfilePage() {
   if (!instructor) return null;
 
   return (
-    <Container className="max-w-xl py-10">
+    <Container className="max-w-3xl py-10">
         <Link href={ROUTES.instructorDashboard} className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Back to dashboard
@@ -160,7 +161,7 @@ export default function InstructorProfilePage() {
         <h1 className="mt-4 font-display text-2xl font-semibold">Your profile</h1>
 
         {completion && (
-          <div className="mt-4 rounded-xl2 border border-ink-900/10 bg-white p-4">
+          <Card padded={false} className="mt-4 p-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-ink-900">Profile completion</p>
               <span className="text-sm font-semibold text-signal-600">
@@ -170,7 +171,7 @@ export default function InstructorProfilePage() {
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-ink-900/10">
               <div className="h-full rounded-full bg-signal-500" style={{ width: `${completion.percent}%` }} />
             </div>
-          </div>
+          </Card>
         )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-xl2 border border-ink-900/10 bg-white p-6 text-ink-900/75">
