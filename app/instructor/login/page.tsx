@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
@@ -11,13 +11,32 @@ import { ROUTES } from "@/lib/routes";
 export const dynamic = "force-dynamic";
 
 export default function InstructorLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-paper-50">
+          <Loader2 className="h-6 w-6 animate-spin text-ink-900" aria-hidden="true" />
+        </main>
+      }
+    >
+      <InstructorLoginForm />
+    </Suspense>
+  );
+}
+
+function InstructorLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [checkingSession, setCheckingSession] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Set once on mount from the redirect reason (if any) — a fresh login
+  // attempt should clear it, not keep re-showing a stale reason.
+  const [inactiveNotice] = useState(() => searchParams.get("reason") === "inactive");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -63,6 +82,11 @@ export default function InstructorLoginPage() {
           <p className="mt-1 text-center text-sm text-ink-700">Elora Tech Institute</p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4 text-ink-900/75">
+            {inactiveNotice && !error && (
+              <p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Your instructor account is currently inactive. Contact an administrator for help.
+              </p>
+            )}
             {error && (
               <p role="alert" className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-700">
                 {error}

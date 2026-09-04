@@ -64,6 +64,7 @@ function RowActions({
           onClick={() => onAction(row.id, "approve")}
           disabled={actioningId === row.id}
           title="Approve"
+          aria-label="Approve payment"
           className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-success/15 text-success hover:bg-success/25 disabled:opacity-50"
         >
           <Check className="h-4 w-4" aria-hidden="true" />
@@ -74,6 +75,7 @@ function RowActions({
           onClick={() => onAction(row.id, "reject")}
           disabled={actioningId === row.id}
           title="Reject"
+          aria-label="Reject payment"
           className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-error/15 text-error hover:bg-error/25 disabled:opacity-50"
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -84,6 +86,7 @@ function RowActions({
           onClick={() => onAction(row.id, "request_correction")}
           disabled={actioningId === row.id}
           title="Request correction"
+          aria-label="Request payment correction"
           className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-warning/15 text-warning hover:bg-warning/25 disabled:opacity-50"
         >
           <RotateCcw className="h-4 w-4" aria-hidden="true" />

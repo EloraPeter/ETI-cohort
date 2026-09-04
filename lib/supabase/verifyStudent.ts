@@ -23,5 +23,8 @@ export async function verifyStudentRequest(request: Request): Promise<Student | 
     .single();
 
   if (studentError || !student) return null;
+  // Withdrawn/inactive students shouldn't retain live API access — status
+  // is checked fresh on every request, same pattern as verifyInstructorRequest.
+  if (student.status !== "active") return null;
   return student;
 }

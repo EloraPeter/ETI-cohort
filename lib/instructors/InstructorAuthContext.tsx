@@ -79,7 +79,12 @@ export function InstructorAuthProvider({ children }: { children: ReactNode }) {
         headers: { ...init?.headers, Authorization: `Bearer ${accessToken}` },
       });
       if (res.status === 401) {
-        router.replace(ROUTES.instructorLogin);
+        // By this point the browser already has a valid Supabase session
+        // (getSession() passed on mount) — a 401 here specifically means
+        // verifyInstructorRequest rejected it server-side, which today only
+        // happens for a deactivated account. Carry that context to login
+        // rather than bouncing silently.
+        router.replace(`${ROUTES.instructorLogin}?reason=inactive`);
       }
       return res;
     },
