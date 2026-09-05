@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Lock, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
@@ -89,6 +90,11 @@ export default function StudentLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </Field>
+            <div className="flex justify-end">
+              <Link href="/forgot-password?role=student" className="text-xs font-medium text-mist hover:text-white">
+                Forgot password?
+              </Link>
+            </div>
             <button type="submit" disabled={loading} className="btn-primary w-full disabled:opacity-60">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Sign in"}
             </button>

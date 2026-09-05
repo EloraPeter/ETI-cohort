@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Lock, Loader2 } from "lucide-react";
 import { Container } from "@/components/ui/Container";
 import { Field, inputClass } from "@/components/ui/Field";
@@ -112,6 +113,11 @@ function InstructorLoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </Field>
+            <div className="flex justify-end">
+              <Link href="/forgot-password?role=instructor" className="text-xs font-medium text-ink-700 hover:text-ink-900">
+                Forgot password?
+              </Link>
+            </div>
             <button
               type="submit"
               disabled={loading}
